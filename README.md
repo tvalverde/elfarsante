@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# El Farsante 🕵️‍♂️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A stylish, Cyber-Noir themed hidden role game designed for local play on a single shared device. Built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## 🎮 About the Game
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**El Farsante** (The Impostor) is a social deduction game where players must identify the liar among them. One or two players are secretly assigned the role of "The Impostor" while the rest are "Innocents." 
 
-## React Compiler
+- **The Innocents:** Know a secret word from a chosen category. They must describe it subtly enough so the Impostor doesn't guess it, but clearly enough to prove their innocence to others.
+- **The Impostor:** Does not know the word. Their goal is to blend in, mimic the others, and avoid being caught. If they survive or guess the word, they win.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Key Features
 
-## Expanding the ESLint configuration
+- **Local Multiplayer:** Optimized for "pass-and-play" sessions.
+- **Dynamic Categories:** Choose from 6 different categories (Professions, Food, Animals, Sports, Places, and Home Objects).
+- **Advanced Game Settings:**
+  - **Round Timer:** Customizable durations (3, 5, or 10 minutes).
+  - **Impostor Count:** Play with 1 or 2 Impostors.
+  - **Hardcore Mode:** Blind timer that only reveals itself in the last 30 seconds.
+  - **Tournament Mode:** Set a score limit (5 or 10 points) to determine the ultimate winner.
+  - **Time Penalties:** Lose time when an Innocent player is wrongly eliminated.
+- **Cyber-Noir Aesthetic:** Deep blacks (#0D0D12), electric cyans, and neon reds, featuring *Space Grotesk* and *Plus Jakarta Sans* typography.
+- **Game Persistence:** Automatic state saving in `localStorage` allows you to resume interrupted games.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Technical Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Framework:** [React 19](https://react.dev/)
+- **Bundler:** [Vite 8](https://vite.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **State Management:** React Context + `useReducer` with persistence middleware.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- [Node.js](https://nodejs.org/) (latest LTS recommended)
+- [npm](https://www.npmjs.com/)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Installation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/tvalverde/elfarsante.git
+   cd elfarsante
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Deployment
+
+To deploy the project to GitHub Pages:
+
+1. Build and deploy:
+   ```bash
+   npm run deploy
+   ```
+   *This uses the `gh-pages` package to build the project and push the `dist` folder to the `gh-pages` branch.*
+
+## 📜 License
+
+This project is open-source and available under the MIT License.
