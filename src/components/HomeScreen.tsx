@@ -9,7 +9,16 @@ const AVAILABLE_CATEGORIES = ['profesiones', 'comida_bebida', 'animales', 'depor
 
 export function HomeScreen() {
   const { state, dispatch } = useGameState();
-  const [players, setPlayers] = useState<string[]>([]);
+  const [players, setPlayers] = useState<string[]>(() => {
+    const saved = localStorage.getItem('elfarsante_draft_players');
+    if (saved) {
+      try { 
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['animales']);
   const [showSettings, setShowSettings] = useState(false);
   const [timerDuration, setTimerDuration] = useState(300); // 5 minutes
@@ -19,11 +28,16 @@ export function HomeScreen() {
   const [blindTimer, setBlindTimer] = useState(false);
 
   useEffect(() => {
-    // Si venimos de una partida anterior (incluso terminada), podemos pre-cargar los nombres
-    if (state.players && state.players.length > 0) {
+    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    // Si venimos de una partida anterior (incluso terminada) y no tenemos borrador, pre-cargamos los nombres
+    if (players.length === 0 && state.players && state.players.length > 0) {
       const prevNames = state.players.map(p => p.name);
       setPlayers(prevNames);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddPlayer = () => {
