@@ -85,13 +85,16 @@ export function HomeScreen() {
       }
     }
     
-    const gamePlayers: Player[] = validPlayers.map((name, index) => ({
-      id: `p-${index}`,
-      name,
-      score: 0,
-      isAlive: true,
-      role: farsanteIndices.includes(index) ? 'farsante' : 'normal'
-    }));
+    const gamePlayers: Player[] = validPlayers.map((name, index) => {
+      const existingPlayer = state.players.find(p => p.name === name);
+      return {
+        id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
+        name,
+        score: existingPlayer ? existingPlayer.score : 0,
+        isAlive: true,
+        role: farsanteIndices.includes(index) ? 'farsante' : 'normal'
+      };
+    });
 
     // Select random word based on selected categories
     const possibleWords: {word: string, cat: string}[] = [];

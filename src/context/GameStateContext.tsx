@@ -105,32 +105,30 @@ function gameReducer(state: GameState, action: Action): GameState {
 
 const GameStateContext = createContext<{ state: GameState; dispatch: React.Dispatch<Action> } | undefined>(undefined);
 
-export function GameStateProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, initialState);
-
-  useEffect(() => {
+function initGameState(initial: GameState): GameState {
+  if (typeof window === 'undefined') return initial; // Para SSR/tests si aplica
+  try {
     const savedState = localStorage.getItem('elfarsante_state');
     if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState);
-        // Only load if it has valid phase and it's not HOME or PUNTUACIONES
-        if (parsed && parsed.currentPhase) {
-           if (parsed.currentPhase !== 'HOME' && parsed.currentPhase !== 'PUNTUACIONES' && parsed.currentPhase !== 'RESTORE_PROMPT') {
-             // It's a mid-game state, prompt to restore
-             dispatch({ type: 'LOAD_STATE', payload: { ...parsed, currentPhase: 'RESTORE_PROMPT' } });
-           } else if (parsed.currentPhase === 'PUNTUACIONES') {
-             // If they reload on scores, just load it
-             dispatch({ type: 'LOAD_STATE', payload: parsed });
-           } else {
-             // If it was HOME, just load names into state but keep HOME
-             dispatch({ type: 'LOAD_STATE', payload: { ...initialState, players: parsed.players } });
-           }
+      const parsed = JSON.parse(savedState);
+      if (parsed && parsed.currentPhase) {
+        if (parsed.currentPhase !== 'HOME' && parsed.currentPhase !== 'PUNTUACIONES' && parsed.currentPhase !== 'RESTORE_PROMPT') {
+          return { ...parsed, currentPhase: 'RESTORE_PROMPT' };
+        } else if (parsed.currentPhase === 'PUNTUACIONES') {
+          return parsed;
+        } else {
+          return { ...initial, players: parsed.players || [] };
         }
-      } catch (e) {
-        console.error("Failed to parse saved state", e);
       }
     }
-  }, []);
+  } catch (e) {
+    console.error("Failed to parse saved state", e);
+  }
+  return initial;
+}
+
+export function GameStateProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(gameReducer, initialState, initGameState);
 
   useEffect(() => {
     if (state.currentPhase !== 'RESTORE_PROMPT') {
