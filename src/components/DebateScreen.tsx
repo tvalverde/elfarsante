@@ -17,20 +17,26 @@ export function DebateScreen() {
     dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' })
   }, [dispatch, showToast])
 
-  const timer = useTimer(state.round.remainingTime, handleTimeUp, !shouldShowOverlay)
+  const {
+    play: playTimer,
+    pause: pauseTimer,
+    isActive: isTimerActive,
+    seconds: timerSeconds,
+    formattedTime,
+  } = useTimer(state.round.remainingTime, handleTimeUp, !shouldShowOverlay)
 
   // Auto-hide start notice after 2.5 seconds
   useEffect(() => {
     if (shouldShowOverlay) {
       const timerId = setTimeout(() => {
         setShowStartNotice(false)
-        timer.play()
+        playTimer()
       }, 2500)
       return () => clearTimeout(timerId)
     } else {
-      timer.play()
+      playTimer()
     }
-  }, [shouldShowOverlay, timer])
+  }, [shouldShowOverlay, playTimer])
 
   // Mark notice as shown in global state as soon as it mounts, but only once
   useEffect(() => {
@@ -41,18 +47,18 @@ export function DebateScreen() {
 
   // Sync timer seconds with global state to persist on refresh
   useEffect(() => {
-    if (timer.isActive && timer.seconds !== state.round.remainingTime) {
-      dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timer.seconds } })
+    if (isTimerActive && timerSeconds !== state.round.remainingTime) {
+      dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timerSeconds } })
     }
-  }, [timer.seconds, timer.isActive, dispatch, state.round.remainingTime])
+  }, [timerSeconds, isTimerActive, dispatch, state.round.remainingTime])
 
   const handleAcusar = () => {
-    timer.pause()
-    dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timer.seconds } })
+    pauseTimer()
+    dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timerSeconds } })
     dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' })
   }
 
-  const isUrgent = timer.seconds <= 30
+  const isUrgent = timerSeconds <= 30
 
   // Reorder players so the starting player is first, maintaining circular order
   const startingIndex = state.players.findIndex((p) => p.id === state.round.startingPlayerId)
@@ -107,10 +113,10 @@ export function DebateScreen() {
         <div
           className={`font-h1 text-[80px] leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-colors duration-300 ${isUrgent ? 'text-neon-red drop-shadow-[0_0_20px_rgba(255,42,95,0.6)] animate-pulse' : 'text-on-background'}`}
         >
-          {state.config.blindTimer && timer.seconds > 30 ? (
+          {state.config.blindTimer && timerSeconds > 30 ? (
             <span className="animate-pulse">?:??</span>
           ) : (
-            timer.formattedTime
+            formattedTime
           )}
         </div>
       </section>
