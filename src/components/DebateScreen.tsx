@@ -13,6 +13,13 @@ export function DebateScreen() {
 
   const timer = useTimer(state.round.remainingTime, handleTimeUp);
 
+  // Sync timer seconds with global state to persist on refresh
+  useEffect(() => {
+    if (timer.isActive && timer.seconds !== state.round.remainingTime) {
+      dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timer.seconds } });
+    }
+  }, [timer.seconds, timer.isActive, dispatch, state.round.remainingTime]);
+
   const handleAcusar = () => {
     timer.pause();
     dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timer.seconds } });
