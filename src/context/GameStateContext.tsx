@@ -27,6 +27,7 @@ export interface RoundData {
   accusedId: string | null;
   currentPlayerIndex: number;
   startingPlayerId: string | null;
+  hasShownStartNotice: boolean;
 }
 
 export interface GameState {
@@ -55,6 +56,7 @@ const initialState: GameState = {
     accusedId: null,
     currentPlayerIndex: 0,
     startingPlayerId: null,
+    hasShownStartNotice: false,
   }
 };
 

@@ -219,7 +219,8 @@ export function HomeScreen() {
           remainingTime: timerDuration,
           accusedId: null,
           currentPlayerIndex: 0,
-          startingPlayerId
+          startingPlayerId,
+          hasShownStartNotice: false
         }
       }
     });
