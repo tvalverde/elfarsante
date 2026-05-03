@@ -19,13 +19,78 @@ export function HomeScreen() {
     }
     return [];
   });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['animales']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectedCategories) return parsed.selectedCategories;
+      } catch (e) {}
+    }
+    return state.config.selectedCategories;
+  });
   const [showSettings, setShowSettings] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(300); // 5 minutes
-  const [farsantesCount, setFarsantesCount] = useState(1);
-  const [penaltyOnFail, setPenaltyOnFail] = useState(false);
-  const [scoreLimit, setScoreLimit] = useState<number | null>(null);
-  const [blindTimer, setBlindTimer] = useState(false);
+  const [timerDuration, setTimerDuration] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.timerDuration) return parsed.timerDuration;
+      } catch (e) {}
+    }
+    return state.config.timerDuration;
+  });
+  const [farsantesCount, setFarsantesCount] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.farsantesCount) return parsed.farsantesCount;
+      } catch (e) {}
+    }
+    return state.config.farsantesCount;
+  });
+  const [penaltyOnFail, setPenaltyOnFail] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.penaltyOnFail !== undefined) return parsed.penaltyOnFail;
+      } catch (e) {}
+    }
+    return state.config.penaltyOnFail;
+  });
+  const [scoreLimit, setScoreLimit] = useState<number | null>(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.scoreLimit !== undefined) return parsed.scoreLimit;
+      } catch (e) {}
+    }
+    return state.config.scoreLimit;
+  });
+  const [blindTimer, setBlindTimer] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.blindTimer !== undefined) return parsed.blindTimer;
+      } catch (e) {}
+    }
+    return state.config.blindTimer;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('elfarsante_draft_config', JSON.stringify({
+      selectedCategories,
+      timerDuration,
+      farsantesCount,
+      penaltyOnFail,
+      scoreLimit,
+      blindTimer
+    }));
+  }, [selectedCategories, timerDuration, farsantesCount, penaltyOnFail, scoreLimit, blindTimer]);
 
   useEffect(() => {
     localStorage.setItem('elfarsante_draft_players', JSON.stringify(players));

@@ -117,7 +117,7 @@ function initGameState(initial: GameState): GameState {
         } else if (parsed.currentPhase === 'PUNTUACIONES') {
           return parsed;
         } else {
-          return { ...initial, players: parsed.players || [] };
+          return { ...initial, players: parsed.players || [], config: parsed.config || initial.config };
         }
       }
     }
