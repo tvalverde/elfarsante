@@ -62,7 +62,7 @@ export function DebateScreen() {
   const startingPlayer = state.players.find(p => p.id === state.round.startingPlayerId);
 
   return (
-    <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-3xl mx-auto gap-section-margin flex-grow mt-8">
+    <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-3xl mx-auto gap-section-margin flex-grow mt-8 pb-[120px]">
       {/* Starting Player Overlay */}
       {showStartNotice && shouldShowOverlay && startingPlayer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none p-6">
@@ -100,17 +100,6 @@ export function DebateScreen() {
             timer.formattedTime
           )}
         </div>
-      </section>
-
-      {/* Action Button */}
-      <section className="w-full">
-        <button 
-          onClick={handleAcusar}
-          className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-xl flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all active:scale-95 neon-glow-red uppercase tracking-wide"
-        >
-          <span>DETENER Y ACUSAR</span>
-          <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>front_hand</span>
-        </button>
       </section>
 
       {/* Players List */}
@@ -164,6 +153,19 @@ export function DebateScreen() {
           );
         })}
       </section>
+
+      {/* Fixed bottom Action Button */}
+      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
+        <div className="w-full max-w-3xl pointer-events-auto">
+          <button 
+            onClick={handleAcusar}
+            className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-xl flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all active:scale-95 neon-glow-red uppercase tracking-wide shadow-[0_0_20px_rgba(255,42,95,0.4)]"
+          >
+            <span>DETENER Y ACUSAR</span>
+            <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>front_hand</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
