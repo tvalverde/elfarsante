@@ -4,7 +4,7 @@ import { NeonButton } from './ui/NeonButton';
 
 export function ScoreScreen() {
   const { state, dispatch } = useGameState();
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
   
   const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score);
   const highestScore = sortedPlayers[0]?.score || 0;
