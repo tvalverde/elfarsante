@@ -8,6 +8,8 @@ import { RestorePromptScreen } from './components/RestorePromptScreen';
 import { useGameState } from './context/GameStateContext';
 import { useWakeLock } from './hooks/useWakeLock';
 
+declare const __APP_VERSION__: string;
+
 function App() {
   const { state } = useGameState();
 
@@ -19,10 +21,13 @@ function App() {
       {/* TopAppBar */}
       <header className="docked full-width top-0 border-b border-neutral-800 flat no-shadows bg-neutral-950 flex justify-between items-center px-6 h-16 w-full z-40 sticky shrink-0">
         <div className="w-10"></div> {/* Spacer to keep title centered */}
-        <h1 className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(0,229,255,0.5)] font-h1 uppercase tracking-widest pointer-events-none">EL FARSANTE</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="text-2xl font-black text-cyan-400 drop-shadow-[0_0_10px_rgba(0,229,255,0.5)] font-h1 uppercase tracking-widest pointer-events-none leading-none">EL FARSANTE</h1>
+          <span className="text-[10px] text-cyan-800 font-bold tracking-tighter uppercase mt-0.5">v{__APP_VERSION__}</span>
+        </div>
         <button 
           onClick={() => alert(
-            "🕵️ BIENVENIDO A EL FARSANTE\n\n" +
+            `🕵️ EL FARSANTE v${__APP_VERSION__}\n\n` +
             "OBJETIVO:\n" +
             "• Inocentes: Encontrar al Farsante antes de ser superados en número.\n" +
             "• Farsante: Pasar desapercibido y deducir la palabra secreta.\n\n" +
