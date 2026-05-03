@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useGameState } from '../context/GameStateContext';
 import { useTimer } from '../hooks/useTimer';
 import { CATEGORY_LABELS } from '../data/dictionary';

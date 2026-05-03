@@ -6,6 +6,7 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 ## Core Technical Mandates
 
 ### 1. State Persistence & Initialization
+- **Build Verification:** Always run `npm run build` after any code change to ensure TypeScript consistency and build stability.
 - **Lazy Initialization:** Always initialize `useReducer` or `useState` that depends on `localStorage` using a lazy initializer function (passed as the 3rd argument to `useReducer`) to avoid hydration mismatches and race conditions with `useEffect` that might overwrite data on mount.
 - **Global State:** The `GameStateContext` is the source of truth. It must persist the entire state to `localStorage` under the key `elfarsante_state`.
 - **Draft Persistence:** Temporary inputs (like player names in `HomeScreen`) must be persisted independently (e.g., `elfarsante_draft_players`) to prevent data loss before the game starts.
