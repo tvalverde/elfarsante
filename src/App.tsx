@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { HomeScreen } from './components/HomeScreen';
 import { DistributionScreen } from './components/DistributionScreen';
 import { DebateScreen } from './components/DebateScreen';
@@ -7,11 +8,14 @@ import { ScoreScreen } from './components/ScoreScreen';
 import { RestorePromptScreen } from './components/RestorePromptScreen';
 import { useGameState } from './context/GameStateContext';
 import { useWakeLock } from './hooks/useWakeLock';
+import { NeonModal } from './components/ui/NeonModal';
+import { CyberToast } from './components/ui/CyberToast';
 
 declare const __APP_VERSION__: string;
 
 function App() {
   const { state } = useGameState();
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Keep screen awake only during the DEBATE phase
   useWakeLock(state.currentPhase === 'DEBATE');
@@ -26,21 +30,7 @@ function App() {
           <span className="text-[10px] text-cyan-800 font-bold tracking-tighter uppercase mt-0.5">v{__APP_VERSION__}</span>
         </div>
         <button 
-          onClick={() => alert(
-            `🕵️ EL FARSANTE v${__APP_VERSION__}\n\n` +
-            "OBJETIVO:\n" +
-            "• Inocentes: Encontrar al Farsante antes de ser superados en número.\n" +
-            "• Farsante: Pasar desapercibido y deducir la palabra secreta.\n\n" +
-            "REGLAS:\n" +
-            "1. Todos reciben la palabra secreta excepto el Farsante.\n" +
-            "2. Por turnos, decid UNA SOLA PALABRA relacionada.\n" +
-            "3. Tras el debate, votad al sospechoso.\n\n" +
-            "SISTEMA DE PUNTOS:\n" +
-            "✅ Inocentes: +1 pt por descubrir al Farsante.\n" +
-            "💔 Inocente eliminado por error: +1 pt (consolación).\n" +
-            "🎭 Farsante descubierto: +1 pt si adivina la palabra secreta.\n" +
-            "🏆 Victoria Farsante: +2 pts si sobrevive o iguala en número a los inocentes."
-          )}
+          onClick={() => setIsHelpOpen(true)}
           className="text-neutral-500 hover:text-cyan-300 transition-colors active:scale-95 duration-150 p-2 -mr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-container"
         >
           <span className="material-symbols-outlined text-2xl">help_outline</span>
@@ -57,6 +47,60 @@ function App() {
         {state.currentPhase === 'RESULTADO' && <ResultScreen />}
         {state.currentPhase === 'PUNTUACIONES' && <ScoreScreen />}
       </main>
+
+      {/* Modals & Toasts */}
+      <NeonModal 
+        isOpen={isHelpOpen} 
+        onClose={() => setIsHelpOpen(false)} 
+        title="Instrucciones"
+      >
+        <div className="flex flex-col gap-6">
+          <section>
+            <h3 className="text-primary-container font-bold uppercase tracking-wider mb-2">Objetivo</h3>
+            <ul className="list-disc list-inside space-y-1 opacity-90">
+              <li><span className="text-white font-semibold">Inocentes:</span> Encontrar al Farsante antes de ser superados en número.</li>
+              <li><span className="text-white font-semibold">Farsante:</span> Pasar desapercibido y deducir la palabra secreta.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-primary-container font-bold uppercase tracking-wider mb-2">Reglas</h3>
+            <ol className="list-decimal list-inside space-y-2 opacity-90">
+              <li>Todos reciben la palabra secreta excepto el Farsante.</li>
+              <li>Por turnos, decid <span className="text-white font-semibold underline decoration-primary-container">UNA SOLA PALABRA</span> relacionada con el secreto.</li>
+              <li>Tras el debate, votad al sospechoso.</li>
+            </ol>
+          </section>
+
+          <section>
+            <h3 className="text-primary-container font-bold uppercase tracking-wider mb-2">Sistema de Puntos</h3>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex gap-2">
+                <span className="text-primary-container">✅</span>
+                <p><span className="text-white font-semibold">Inocentes:</span> +1 pt por descubrir al Farsante.</p>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-neon-red">💔</span>
+                <p><span className="text-white font-semibold">Error:</span> +1 pt de consolación si eres eliminado siendo inocente.</p>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-primary-container">🎭</span>
+                <p><span className="text-white font-semibold">Farsante Audaz:</span> +1 pt si eres descubierto pero adivinas la palabra.</p>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-primary-container">🏆</span>
+                <p><span className="text-white font-semibold">Victoria Farsante:</span> +2 pts si sobrevives hasta el final.</p>
+              </div>
+            </div>
+          </section>
+
+          <p className="text-[10px] text-outline text-center uppercase tracking-widest mt-4">
+            v{__APP_VERSION__} • Diseñado para la infamia
+          </p>
+        </div>
+      </NeonModal>
+
+      <CyberToast />
     </div>
   );
 }

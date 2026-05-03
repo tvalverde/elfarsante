@@ -4,11 +4,13 @@ import { PillTag } from './ui/PillTag';
 import { NeonButton } from './ui/NeonButton';
 import { useGameState, type Player } from '../context/GameStateContext';
 import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary';
+import { useToast } from '../context/ToastContext';
 
 const AVAILABLE_CATEGORIES = ['profesiones', 'comida_bebida', 'animales', 'deportes', 'lugares', 'objetos_casa'];
 
 export function HomeScreen() {
   const { state, dispatch } = useGameState();
+  const { showToast } = useToast();
   const [players, setPlayers] = useState<string[]>(() => {
     const saved = localStorage.getItem('elfarsante_draft_players');
     if (saved) {
@@ -132,18 +134,18 @@ export function HomeScreen() {
   const handleStartGame = () => {
     const validPlayers = players.filter(p => p.trim() !== '');
     if (validPlayers.length < 3) {
-      alert("Se necesitan al menos 3 jugadores.");
+      showToast("Se necesitan al menos 3 jugadores.", "error");
       return;
     }
 
     const uniquePlayers = new Set(validPlayers);
     if (uniquePlayers.size !== validPlayers.length) {
-      alert("Los nombres de los jugadores deben ser únicos.");
+      showToast("Los nombres de los jugadores deben ser únicos.", "error");
       return;
     }
     
     if (farsantesCount > 1 && validPlayers.length < 5) {
-      alert("Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.");
+      showToast("Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.", "error");
       return;
     }
 

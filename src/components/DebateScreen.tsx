@@ -2,18 +2,20 @@ import { useEffect, useState, useCallback } from 'react';
 import { useGameState } from '../context/GameStateContext';
 import { useTimer } from '../hooks/useTimer';
 import { CATEGORY_LABELS } from '../data/dictionary';
+import { useToast } from '../context/ToastContext';
 
 export function DebateScreen() {
   const { state, dispatch } = useGameState();
+  const { showToast } = useToast();
   const [showStartNotice, setShowStartNotice] = useState(true);
   // Capture initial state on mount to prevent instant hide on global state update
   const [shouldShowOverlay] = useState(!state.round.hasShownStartNotice);
   
   const handleTimeUp = useCallback(() => {
-    alert("¡TIEMPO AGOTADO! Votación forzada.");
+    showToast("¡TIEMPO AGOTADO! Votación forzada.", "error");
     dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: 0 } });
     dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' });
-  }, [dispatch]);
+  }, [dispatch, showToast]);
 
   const timer = useTimer(state.round.remainingTime, handleTimeUp, !shouldShowOverlay);
 
