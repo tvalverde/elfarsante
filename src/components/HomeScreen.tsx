@@ -76,12 +76,32 @@ export function HomeScreen() {
       return;
     }
 
-    // Logic to select Farsantes
+    // Role selection logic
     let farsanteIndices: number[] = [];
-    while (farsanteIndices.length < farsantesCount) {
-      const idx = Math.floor(Math.random() * validPlayers.length);
-      if (!farsanteIndices.includes(idx)) {
-        farsanteIndices.push(idx);
+    const allIndices = validPlayers.map((_, i) => i);
+
+    if (validPlayers.length === 3 && farsantesCount === 1) {
+      // Weighted randomness for 3 players to reduce (but not eliminate) consecutive repeats
+      const previousFarsanteNames = state.players
+        .filter(p => p.role === 'farsante')
+        .map(p => p.name);
+
+      const ticketPool: number[] = [];
+      allIndices.forEach(idx => {
+        const isPrevious = previousFarsanteNames.includes(validPlayers[idx]);
+        const tickets = isPrevious ? 1 : 4; // 1 ticket for the repeater, 4 for the fresh ones
+        for (let i = 0; i < tickets; i++) ticketPool.push(idx);
+      });
+
+      const selectedIdx = ticketPool[Math.floor(Math.random() * ticketPool.length)];
+      farsanteIndices.push(selectedIdx);
+    } else {
+      // Pure randomness for > 3 players or multiple farsantes
+      while (farsanteIndices.length < farsantesCount) {
+        const idx = Math.floor(Math.random() * validPlayers.length);
+        if (!farsanteIndices.includes(idx)) {
+          farsanteIndices.push(idx);
+        }
       }
     }
     

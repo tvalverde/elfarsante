@@ -13,6 +13,7 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 ### 2. Player & Role Management
 - **Stable IDs & Scores:** When starting a new round, always attempt to preserve player IDs and Scores from the previous round by matching names in the state.
 - **Role Assignment Sync:** The `round.farsanteIds` array must always be derived from the actual IDs assigned to players in the `players` array. Never use hardcoded or separate index-based IDs.
+- **Weighted Fairness (3 Players):** In games with exactly 3 players, use a weighted system (tickets) to select the Farsante. The previous Farsante gets 1 ticket, while others get 4 tickets. This reduces consecutive repeats to ~11% without making them impossible. For games with > 3 players, use pure randomness.
 - **Score Integrity:** Do not reset scores to zero when moving from `PUNTUACIONES` to `HOME` and starting a new round.
 
 ### 3. Architecture & UI
