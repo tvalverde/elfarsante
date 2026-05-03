@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-surface-container-highest: #2e3638;
@@ -48,20 +48,20 @@
   --color-secondary: #c7c5d1;
   --color-on-error: #690005;
   --color-surface-container-lowest: #080f11;
-  --color-cyber-noir-bg: #0D0D12;
-  --color-cyber-noir-surface: #1A1A23;
-  --color-neon-red: #FF2A5F;
+  --color-cyber-noir-bg: #0d0d12;
+  --color-cyber-noir-surface: #1a1a23;
+  --color-neon-red: #ff2a5f;
 
   --spacing-unit: 8px;
   --spacing-container-padding: 24px;
   --spacing-section-margin: 40px;
   --spacing-element-gap: 16px;
 
-  --font-h1: "Space Grotesk", sans-serif;
-  --font-body-md: "Plus Jakarta Sans", sans-serif;
-  --font-label-pill: "Space Grotesk", sans-serif;
-  --font-body-lg: "Plus Jakarta Sans", sans-serif;
-  --font-h2: "Space Grotesk", sans-serif;
+  --font-h1: 'Space Grotesk', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
+  --font-label-pill: 'Space Grotesk', sans-serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-h2: 'Space Grotesk', sans-serif;
 }
 
 @layer utilities {

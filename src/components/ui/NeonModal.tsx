@@ -1,31 +1,31 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react'
 
 interface NeonModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: ReactNode;
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
 }
 
 export function NeonModal({ isOpen, onClose, title, children }: NeonModalProps) {
   // Prevent scroll when open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = 'unset'
     }
     return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
         onClick={onClose}
       ></div>
@@ -36,7 +36,7 @@ export function NeonModal({ isOpen, onClose, title, children }: NeonModalProps) 
           <h2 className="font-h1 text-2xl text-primary-container uppercase tracking-tight">
             {title}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 text-outline transition-colors"
           >
@@ -49,5 +49,5 @@ export function NeonModal({ isOpen, onClose, title, children }: NeonModalProps) 
         </div>
       </div>
     </div>
-  );
+  )
 }

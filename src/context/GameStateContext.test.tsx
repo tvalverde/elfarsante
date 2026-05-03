@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { gameReducer, type GameState, type Player } from './GameStateContext';
+import { describe, it, expect } from 'vitest'
+import { gameReducer, type GameState, type Player } from './GameStateContext'
 
 describe('gameReducer', () => {
   const initialPlayer: Player = {
@@ -11,8 +11,8 @@ describe('gameReducer', () => {
     roundsSurvivedCount: 5,
     farsanteWinsCount: 1,
     isAlive: true,
-    role: 'normal'
-  };
+    role: 'normal',
+  }
 
   const mockState: GameState = {
     players: [initialPlayer],
@@ -34,33 +34,33 @@ describe('gameReducer', () => {
       currentPlayerIndex: 0,
       startingPlayerId: null,
       hasShownStartNotice: false,
-    }
-  };
+    },
+  }
 
   it('should reset scores but keep players and stats on RESET_GAME', () => {
-    const action = { type: 'RESET_GAME' } as const;
-    const newState = gameReducer(mockState, action);
+    const action = { type: 'RESET_GAME' } as const
+    const newState = gameReducer(mockState, action)
 
-    expect(newState.currentPhase).toBe('HOME');
-    expect(newState.players[0].score).toBe(0);
-    expect(newState.players[0].name).toBe('Test Player');
-    expect(newState.players[0].roundsSurvivedCount).toBe(5);
-    expect(newState.players[0].isAlive).toBe(true);
-    expect(newState.players[0].role).toBeNull();
-  });
+    expect(newState.currentPhase).toBe('HOME')
+    expect(newState.players[0].score).toBe(0)
+    expect(newState.players[0].name).toBe('Test Player')
+    expect(newState.players[0].roundsSurvivedCount).toBe(5)
+    expect(newState.players[0].isAlive).toBe(true)
+    expect(newState.players[0].role).toBeNull()
+  })
 
   it('should update current phase on NEXT_PHASE', () => {
-    const action = { type: 'NEXT_PHASE', payload: 'DEBATE' } as const;
-    const newState = gameReducer(mockState, action);
+    const action = { type: 'NEXT_PHASE', payload: 'DEBATE' } as const
+    const newState = gameReducer(mockState, action)
 
-    expect(newState.currentPhase).toBe('DEBATE');
-  });
+    expect(newState.currentPhase).toBe('DEBATE')
+  })
 
   it('should update players on UPDATE_PLAYERS', () => {
-    const updatedPlayers = [{ ...initialPlayer, score: 20 }];
-    const action = { type: 'UPDATE_PLAYERS', payload: updatedPlayers } as const;
-    const newState = gameReducer(mockState, action);
+    const updatedPlayers = [{ ...initialPlayer, score: 20 }]
+    const action = { type: 'UPDATE_PLAYERS', payload: updatedPlayers } as const
+    const newState = gameReducer(mockState, action)
 
-    expect(newState.players[0].score).toBe(20);
-  });
-});
+    expect(newState.players[0].score).toBe(20)
+  })
+})

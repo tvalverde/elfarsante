@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react'
 
 /**
  * Hook to prevent the screen from turning off using the Screen Wake Lock API.
@@ -6,50 +6,50 @@ import { useEffect, useCallback, useRef } from 'react';
  */
 export function useWakeLock(enabled: boolean) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wakeLock = useRef<any>(null);
+  const wakeLock = useRef<any>(null)
 
   const requestWakeLock = useCallback(async () => {
     if ('wakeLock' in navigator && enabled) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        wakeLock.current = await (navigator as any).wakeLock.request('screen');
-        
+        wakeLock.current = await (navigator as any).wakeLock.request('screen')
+
         // Listen for when the lock is released (e.g. by the system)
         wakeLock.current.addEventListener('release', () => {
-          wakeLock.current = null;
-        });
+          wakeLock.current = null
+        })
       } catch (err: unknown) {
         if (err instanceof Error) {
-          console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+          console.error(`Wake Lock error: ${err.name}, ${err.message}`)
         }
       }
     }
-  }, [enabled]);
+  }, [enabled])
 
   useEffect(() => {
     if (enabled) {
-      requestWakeLock();
+      requestWakeLock()
     } else {
       if (wakeLock.current) {
-        wakeLock.current.release();
-        wakeLock.current = null;
+        wakeLock.current.release()
+        wakeLock.current = null
       }
     }
 
     // Re-request wake lock if app becomes visible again
     const handleVisibilityChange = () => {
       if (enabled && wakeLock.current === null && document.visibilityState === 'visible') {
-        requestWakeLock();
+        requestWakeLock()
       }
-    };
+    }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (wakeLock.current) {
-        wakeLock.current.release();
+        wakeLock.current.release()
       }
-    };
-  }, [enabled, requestWakeLock]);
+    }
+  }, [enabled, requestWakeLock])
 }

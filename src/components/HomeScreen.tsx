@@ -1,186 +1,205 @@
-import { useState, useEffect } from 'react';
-import { CyberInput } from './ui/CyberInput';
-import { PillTag } from './ui/PillTag';
-import { NeonButton } from './ui/NeonButton';
-import { useGameState, type Player } from '../context/GameStateContext';
-import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary';
-import { useToast } from '../context/ToastContext';
+import { useState, useEffect } from 'react'
+import { CyberInput } from './ui/CyberInput'
+import { PillTag } from './ui/PillTag'
+import { NeonButton } from './ui/NeonButton'
+import { useGameState, type Player } from '../context/GameStateContext'
+import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
+import { useToast } from '../context/ToastContext'
 
-const AVAILABLE_CATEGORIES = ['profesiones', 'comida_bebida', 'animales', 'deportes', 'lugares', 'objetos_casa'];
+const AVAILABLE_CATEGORIES = [
+  'profesiones',
+  'comida_bebida',
+  'animales',
+  'deportes',
+  'lugares',
+  'objetos_casa',
+]
 
 export function HomeScreen() {
-  const { state, dispatch } = useGameState();
-  const { showToast } = useToast();
+  const { state, dispatch } = useGameState()
+  const { showToast } = useToast()
   const [players, setPlayers] = useState<string[]>(() => {
-    const saved = localStorage.getItem('elfarsante_draft_players');
-    if (saved) {
-      try { 
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return [];
-  });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
+    const saved = localStorage.getItem('elfarsante_draft_players')
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        if (parsed.selectedCategories) return parsed.selectedCategories;
-      } catch (e) {}
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      } catch {
+        // Silent fail for invalid JSON
+      }
     }
-    return state.config.selectedCategories;
-  });
-  const [showSettings, setShowSettings] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.timerDuration) return parsed.timerDuration;
-      } catch (e) {}
-    }
-    return state.config.timerDuration;
-  });
-  const [farsantesCount, setFarsantesCount] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.farsantesCount) return parsed.farsantesCount;
-      } catch (e) {}
-    }
-    return state.config.farsantesCount;
-  });
-  const [penaltyOnFail, setPenaltyOnFail] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.penaltyOnFail !== undefined) return parsed.penaltyOnFail;
-      } catch (e) {}
-    }
-    return state.config.penaltyOnFail;
-  });
-  const [scoreLimit, setScoreLimit] = useState<number | null>(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.scoreLimit !== undefined) return parsed.scoreLimit;
-      } catch (e) {}
-    }
-    return state.config.scoreLimit;
-  });
-  const [blindTimer, setBlindTimer] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.blindTimer !== undefined) return parsed.blindTimer;
-      } catch (e) {}
-    }
-    return state.config.blindTimer;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('elfarsante_draft_config', JSON.stringify({
-      selectedCategories,
-      timerDuration,
-      farsantesCount,
-      penaltyOnFail,
-      scoreLimit,
-      blindTimer
-    }));
-  }, [selectedCategories, timerDuration, farsantesCount, penaltyOnFail, scoreLimit, blindTimer]);
-
-  useEffect(() => {
-    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players));
-  }, [players]);
-
-  useEffect(() => {
     // Si venimos de una partida anterior (incluso terminada) y no tenemos borrador, pre-cargamos los nombres
-    if (players.length === 0 && state.players && state.players.length > 0) {
-      const prevNames = state.players.map(p => p.name);
-      setPlayers(prevNames);
+    if (state.players && state.players.length > 0) {
+      return state.players.map((p) => p.name)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return []
+  })
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.selectedCategories) return parsed.selectedCategories
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.selectedCategories
+  })
+  const [showSettings, setShowSettings] = useState(false)
+  const [timerDuration, setTimerDuration] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.timerDuration) return parsed.timerDuration
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.timerDuration
+  })
+  const [farsantesCount, setFarsantesCount] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.farsantesCount) return parsed.farsantesCount
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.farsantesCount
+  })
+  const [penaltyOnFail, setPenaltyOnFail] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.penaltyOnFail !== undefined) return parsed.penaltyOnFail
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.penaltyOnFail
+  })
+  const [scoreLimit, setScoreLimit] = useState<number | null>(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.scoreLimit !== undefined) return parsed.scoreLimit
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.scoreLimit
+  })
+  const [blindTimer, setBlindTimer] = useState(() => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.blindTimer !== undefined) return parsed.blindTimer
+      } catch {
+        // Silent fail for invalid JSON
+      }
+    }
+    return state.config.blindTimer
+  })
+
+  useEffect(() => {
+    localStorage.setItem(
+      'elfarsante_draft_config',
+      JSON.stringify({
+        selectedCategories,
+        timerDuration,
+        farsantesCount,
+        penaltyOnFail,
+        scoreLimit,
+        blindTimer,
+      }),
+    )
+  }, [selectedCategories, timerDuration, farsantesCount, penaltyOnFail, scoreLimit, blindTimer])
+
+  useEffect(() => {
+    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players))
+  }, [players])
 
   const handleAddPlayer = () => {
-    setPlayers([...players, '']);
-  };
+    setPlayers([...players, ''])
+  }
 
   const handlePlayerChange = (index: number, value: string) => {
-    const newPlayers = [...players];
-    newPlayers[index] = value;
-    setPlayers(newPlayers);
-  };
+    const newPlayers = [...players]
+    newPlayers[index] = value
+    setPlayers(newPlayers)
+  }
 
   const handleRemovePlayer = (index: number) => {
-    setPlayers(players.filter((_, i) => i !== index));
-  };
+    setPlayers(players.filter((_, i) => i !== index))
+  }
 
   const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
       if (selectedCategories.length > 1) {
-        setSelectedCategories(selectedCategories.filter(c => c !== category));
+        setSelectedCategories(selectedCategories.filter((c) => c !== category))
       }
     } else {
-      setSelectedCategories([...selectedCategories, category]);
+      setSelectedCategories([...selectedCategories, category])
     }
-  };
+  }
 
   const handleStartGame = () => {
-    const validPlayers = players.filter(p => p.trim() !== '');
+    const validPlayers = players.filter((p) => p.trim() !== '')
     if (validPlayers.length < 3) {
-      showToast("Se necesitan al menos 3 jugadores.", "error");
-      return;
+      showToast('Se necesitan al menos 3 jugadores.', 'error')
+      return
     }
 
-    const uniquePlayers = new Set(validPlayers);
+    const uniquePlayers = new Set(validPlayers)
     if (uniquePlayers.size !== validPlayers.length) {
-      showToast("Los nombres de los jugadores deben ser únicos.", "error");
-      return;
+      showToast('Los nombres de los jugadores deben ser únicos.', 'error')
+      return
     }
-    
+
     if (farsantesCount > 1 && validPlayers.length < 5) {
-      showToast("Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.", "error");
-      return;
+      showToast('Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.', 'error')
+      return
     }
 
     // Role selection logic
-    let farsanteIndices: number[] = [];
-    const allIndices = validPlayers.map((_, i) => i);
+    const farsanteIndices: number[] = []
+    const allIndices = validPlayers.map((_, i) => i)
 
     if (validPlayers.length === 3 && farsantesCount === 1) {
       // Weighted randomness for 3 players to reduce (but not eliminate) consecutive repeats
       const previousFarsanteNames = state.players
-        .filter(p => p.role === 'farsante')
-        .map(p => p.name);
+        .filter((p) => p.role === 'farsante')
+        .map((p) => p.name)
 
-      const ticketPool: number[] = [];
-      allIndices.forEach(idx => {
-        const isPrevious = previousFarsanteNames.includes(validPlayers[idx]);
-        const tickets = isPrevious ? 1 : 4; // 1 ticket for the repeater, 4 for the fresh ones
-        for (let i = 0; i < tickets; i++) ticketPool.push(idx);
-      });
+      const ticketPool: number[] = []
+      allIndices.forEach((idx) => {
+        const isPrevious = previousFarsanteNames.includes(validPlayers[idx])
+        const tickets = isPrevious ? 1 : 4 // 1 ticket for the repeater, 4 for the fresh ones
+        for (let i = 0; i < tickets; i++) ticketPool.push(idx)
+      })
 
-      const selectedIdx = ticketPool[Math.floor(Math.random() * ticketPool.length)];
-      farsanteIndices.push(selectedIdx);
+      const selectedIdx = ticketPool[Math.floor(Math.random() * ticketPool.length)]
+      farsanteIndices.push(selectedIdx)
     } else {
       // Pure randomness for > 3 players or multiple farsantes
       while (farsanteIndices.length < farsantesCount) {
-        const idx = Math.floor(Math.random() * validPlayers.length);
+        const idx = Math.floor(Math.random() * validPlayers.length)
         if (!farsanteIndices.includes(idx)) {
-          farsanteIndices.push(idx);
+          farsanteIndices.push(idx)
         }
       }
     }
-    
+
     const gamePlayers: Player[] = validPlayers.map((name, index) => {
-      const existingPlayer = state.players.find(p => p.name === name);
-      const isFarsante = farsanteIndices.includes(index);
+      const existingPlayer = state.players.find((p) => p.name === name)
+      const isFarsante = farsanteIndices.includes(index)
       return {
         id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
         name,
@@ -190,28 +209,28 @@ export function HomeScreen() {
         roundsSurvivedCount: existingPlayer ? existingPlayer.roundsSurvivedCount : 0,
         farsanteWinsCount: existingPlayer ? existingPlayer.farsanteWinsCount : 0,
         isAlive: true,
-        role: isFarsante ? 'farsante' : 'normal'
-      };
-    });
+        role: isFarsante ? 'farsante' : 'normal',
+      }
+    })
 
     // Select random word based on selected categories
-    const possibleWords: {word: string, cat: string}[] = [];
-    selectedCategories.forEach(cat => {
-      const words = WORD_LISTS[cat];
+    const possibleWords: { word: string; cat: string }[] = []
+    selectedCategories.forEach((cat) => {
+      const words = WORD_LISTS[cat]
       if (words) {
-        words.forEach(w => possibleWords.push({ word: w, cat }));
+        words.forEach((w) => possibleWords.push({ word: w, cat }))
       }
-    });
-    
-    let chosenWord = "León";
-    let chosenCat = "animales";
+    })
+
+    let chosenWord = 'León'
+    let chosenCat = 'animales'
     if (possibleWords.length > 0) {
-      const randomChoice = possibleWords[Math.floor(Math.random() * possibleWords.length)];
-      chosenWord = randomChoice.word;
-      chosenCat = randomChoice.cat;
+      const randomChoice = possibleWords[Math.floor(Math.random() * possibleWords.length)]
+      chosenWord = randomChoice.word
+      chosenCat = randomChoice.cat
     }
 
-    const startingPlayerId = gamePlayers[Math.floor(Math.random() * gamePlayers.length)].id;
+    const startingPlayerId = gamePlayers[Math.floor(Math.random() * gamePlayers.length)].id
 
     dispatch({
       type: 'START_GAME',
@@ -223,30 +242,29 @@ export function HomeScreen() {
           farsantesCount,
           penaltyOnFail,
           scoreLimit,
-          blindTimer
+          blindTimer,
         },
         round: {
           word: chosenWord,
           category: CATEGORY_LABELS[chosenCat] || chosenCat,
-          farsanteIds: gamePlayers.filter(p => p.role === 'farsante').map(p => p.id),
+          farsanteIds: gamePlayers.filter((p) => p.role === 'farsante').map((p) => p.id),
           remainingTime: timerDuration,
           accusedId: null,
           currentPlayerIndex: 0,
           startingPlayerId,
-          hasShownStartNotice: false
-        }
-      }
-    });
-  };
+          hasShownStartNotice: false,
+        },
+      },
+    })
+  }
 
   return (
     <div className="flex flex-col items-center justify-start w-full max-w-md mx-auto px-container-padding py-section-margin gap-section-margin pb-[120px]">
-      
       {/* Players Panel */}
       <section className="w-full flex flex-col gap-element-gap">
         <div className="flex justify-between items-end mb-2">
           <h2 className="font-h2 text-h2 text-on-surface">Jugadores</h2>
-          <button 
+          <button
             onClick={() => dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' })}
             className="flex items-center gap-1 text-primary-container text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
           >
@@ -257,7 +275,7 @@ export function HomeScreen() {
         <div className="bg-surface-container-high rounded-xl p-container-padding flex flex-col gap-element-gap border border-surface-bright">
           <div className="flex flex-col gap-3">
             {players.map((player, index) => (
-              <CyberInput 
+              <CyberInput
                 key={index}
                 value={player}
                 onChange={(e) => handlePlayerChange(index, e.target.value)}
@@ -277,9 +295,9 @@ export function HomeScreen() {
       <section className="w-full flex flex-col gap-element-gap">
         <h2 className="font-h2 text-h2 text-on-surface mb-2">Categorías</h2>
         <div className="flex flex-wrap gap-3">
-          {AVAILABLE_CATEGORIES.map(category => (
-            <PillTag 
-              key={category} 
+          {AVAILABLE_CATEGORIES.map((category) => (
+            <PillTag
+              key={category}
               active={selectedCategories.includes(category)}
               onClick={() => toggleCategory(category)}
             >
@@ -291,22 +309,25 @@ export function HomeScreen() {
 
       {/* Advanced Settings Link */}
       <div className="w-full flex flex-col items-center mt-4">
-        <button 
+        <button
           onClick={() => setShowSettings(!showSettings)}
           className="text-outline hover:text-primary-container transition-colors text-sm font-medium tracking-wide flex items-center justify-center gap-1 mx-auto"
         >
           Ajustes Avanzados
-          <span className={`material-symbols-outlined text-xs transition-transform ${showSettings ? 'rotate-180' : ''}`}>arrow_drop_down</span>
+          <span
+            className={`material-symbols-outlined text-xs transition-transform ${showSettings ? 'rotate-180' : ''}`}
+          >
+            arrow_drop_down
+          </span>
         </button>
 
         {showSettings && (
           <div className="mt-4 p-6 w-full bg-surface-container rounded-xl border border-outline-variant animate-in fade-in slide-in-from-top-2 flex flex-col gap-6">
-            
             {/* Setting 1: Tiempo */}
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
               <span className="font-semibold text-primary-container">Tiempo por ronda:</span>
-              <select 
-                value={timerDuration / 60} 
+              <select
+                value={timerDuration / 60}
                 onChange={(e) => setTimerDuration(Number(e.target.value) * 60)}
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
@@ -319,8 +340,8 @@ export function HomeScreen() {
             {/* Setting 2: Farsantes */}
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
               <span className="font-semibold text-primary-container">Nº de Farsantes:</span>
-              <select 
-                value={farsantesCount} 
+              <select
+                value={farsantesCount}
                 onChange={(e) => setFarsantesCount(Number(e.target.value))}
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
@@ -332,9 +353,11 @@ export function HomeScreen() {
             {/* Setting 3: Límite de Puntos */}
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
               <span className="font-semibold text-primary-container">Modo Torneo (Límite):</span>
-              <select 
-                value={scoreLimit || 0} 
-                onChange={(e) => setScoreLimit(e.target.value === '0' ? null : Number(e.target.value))}
+              <select
+                value={scoreLimit || 0}
+                onChange={(e) =>
+                  setScoreLimit(e.target.value === '0' ? null : Number(e.target.value))
+                }
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
                 <option value={0}>Partida Libre (Infinito)</option>
@@ -346,29 +369,65 @@ export function HomeScreen() {
             {/* Setting 4: Penalización y Ciego */}
             <div className="flex flex-col gap-4 mt-2">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-6 h-6 rounded flex items-center justify-center border transition-colors ${penaltyOnFail ? 'bg-primary-container border-primary-container' : 'border-outline-variant group-hover:border-primary-container'}`}>
-                  {penaltyOnFail && <span className="material-symbols-outlined text-[16px] text-on-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>}
+                <div
+                  className={`w-6 h-6 rounded flex items-center justify-center border transition-colors ${penaltyOnFail ? 'bg-primary-container border-primary-container' : 'border-outline-variant group-hover:border-primary-container'}`}
+                >
+                  {penaltyOnFail && (
+                    <span
+                      className="material-symbols-outlined text-[16px] text-on-primary-fixed"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      check
+                    </span>
+                  )}
                 </div>
-                <input type="checkbox" checked={penaltyOnFail} onChange={() => setPenaltyOnFail(!penaltyOnFail)} className="hidden" />
-                <span className="font-body-md text-on-surface">Penalización de tiempo (-60s por error)</span>
+                <input
+                  type="checkbox"
+                  checked={penaltyOnFail}
+                  onChange={() => setPenaltyOnFail(!penaltyOnFail)}
+                  className="hidden"
+                />
+                <span className="font-body-md text-on-surface">
+                  Penalización de tiempo (-60s por error)
+                </span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-6 h-6 rounded flex items-center justify-center border transition-colors ${blindTimer ? 'bg-primary-container border-primary-container' : 'border-outline-variant group-hover:border-primary-container'}`}>
-                  {blindTimer && <span className="material-symbols-outlined text-[16px] text-on-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>}
+                <div
+                  className={`w-6 h-6 rounded flex items-center justify-center border transition-colors ${blindTimer ? 'bg-primary-container border-primary-container' : 'border-outline-variant group-hover:border-primary-container'}`}
+                >
+                  {blindTimer && (
+                    <span
+                      className="material-symbols-outlined text-[16px] text-on-primary-fixed"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      check
+                    </span>
+                  )}
                 </div>
-                <input type="checkbox" checked={blindTimer} onChange={() => setBlindTimer(!blindTimer)} className="hidden" />
-                <span className="font-body-md text-on-surface">Cronómetro Oculto (Modo Hardcore)</span>
+                <input
+                  type="checkbox"
+                  checked={blindTimer}
+                  onChange={() => setBlindTimer(!blindTimer)}
+                  className="hidden"
+                />
+                <span className="font-body-md text-on-surface">
+                  Cronómetro Oculto (Modo Hardcore)
+                </span>
               </label>
             </div>
 
             {/* Danger Zone: Hard Reset */}
             <div className="mt-4 pt-4 border-t border-outline-variant/30">
-              <button 
+              <button
                 onClick={() => {
-                  if (confirm('¿ESTÁS SEGURO? Se borrarán todos los jugadores, marcadores e HISTORIAL DE INFAMIA permanentemente.')) {
-                    dispatch({ type: 'HARD_RESET' });
-                    window.location.reload(); // Force reload to clear all local states
+                  if (
+                    confirm(
+                      '¿ESTÁS SEGURO? Se borrarán todos los jugadores, marcadores e HISTORIAL DE INFAMIA permanentemente.',
+                    )
+                  ) {
+                    dispatch({ type: 'HARD_RESET' })
+                    window.location.reload() // Force reload to clear all local states
                   }
                 }}
                 className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-lg"
@@ -376,7 +435,6 @@ export function HomeScreen() {
                 Borrar todos los datos
               </button>
             </div>
-
           </div>
         )}
       </div>
@@ -388,5 +446,5 @@ export function HomeScreen() {
         </NeonButton>
       </div>
     </div>
-  );
+  )
 }
