@@ -11,6 +11,7 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
 
 ## ✨ Key Features
 
+- **PWA (Progressive Web App):** Install the game on your mobile device for a full-screen, app-like immersive experience without browser bars.
 - **Local Multiplayer:** Optimized for "pass-and-play" sessions.
 - **Dynamic Categories:** Choose from 6 different categories (Professions, Food, Animals, Sports, Places, and Home Objects).
 - **Advanced Game Settings:**
@@ -20,6 +21,8 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
   - **Tournament Mode:** Set a score limit (5 or 10 points) to determine the ultimate winner.
   - **Time Penalties:** Lose time when an Innocent player is wrongly eliminated.
 - **Cyber-Noir Aesthetic:** Deep blacks (#0D0D12), electric cyans, and neon reds, featuring *Space Grotesk* and *Plus Jakarta Sans* typography.
+- **Professional UI Components:** Custom-built `NeonModal` and `CyberToast` notification systems replace native browser alerts for complete immersion.
+- **Automatic Versioning:** Every deployment automatically tracks and displays the application version in the UI.
 - **Game Persistence:** Automatic state saving in `localStorage` allows you to resume interrupted games.
 
 ## 🛠️ Technical Stack
@@ -29,6 +32,7 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **State Management:** React Context + `useReducer` with persistence middleware.
+- **PWA Support:** Custom Web Manifest and optimized icon sets for Android and iOS.
 
 ## 🚀 Getting Started
 
@@ -63,7 +67,7 @@ To deploy the project to GitHub Pages:
    ```bash
    npm run deploy
    ```
-   *This uses the `gh-pages` package to build the project and push the `dist` folder to the `gh-pages` branch.*
+   *Note: This command automatically increments the version number (patch), creates a git commit/tag, builds the optimized assets, and publishes the `dist` folder to the `gh-pages` branch.*
 
 ## 📜 License
 

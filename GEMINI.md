@@ -19,7 +19,8 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 
 ### 3. Architecture & UI
 - **Phase-Based Navigation:** The app is a Single Page Application (SPA) driven by a `Phase` string in the global state.
-- **Visual Hierarchy (Game Board):** In `DebateScreen`, prioritize controls (Timer and "Stop" button) by placing them at the top. The player list should follow below to remain accessible regardless of the number of players.
+- **Visual Hierarchy (Sticky UX):** Maintain the "sticky bottom" pattern for primary action buttons (Play, Stop & Accuse, Next Round). Use a `fixed` container with a `bg-gradient-to-t` overlay and appropriate bottom padding (`pb-[120px]` or `pb-[180px]`) on the scrollable content to ensure no elements are hidden.
+- **Zero Native Alerts:** Never use `window.alert()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.
 - **Screen Wake Lock:** Use the `useWakeLock` hook in `App.tsx` to prevent the screen from turning off during the `DEBATE` phase. This API is only available in HTTPS environments and requires user interaction before it can be activated.
 - **Cyber-Noir Design System:**
   - Background: `#0D0D12` (Black).
@@ -28,7 +29,13 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
   - Fonts: *Space Grotesk* for headings, *Plus Jakarta Sans* for body text.
 - **Responsiveness:** Optimized primarily for mobile viewport (PWA/Mobile-First approach).
 
+### 4. Deployment & Versioning
+- **Semantic Versioning:** The project uses automatic semantic versioning (patch).
+- **Deployment Flow:** The `npm run deploy` command MUST execute `npm version patch` BEFORE `npm run build` to ensure the correct version is injected into the production bundle.
+- **PWA Integrity:** Maintain `public/manifest.json` and ensure PNG icons (`192x192` and `512x512`) are synced with the `favicon.svg` design for cross-browser mobile compatibility.
+
 ## Common Pitfalls to Avoid
 - **ID Mismatch:** Avoid generating new IDs for existing players, as it breaks role detection and score tracking.
 - **State Overwrite:** Never set initial state in `useEffect` if a save-to-storage `useEffect` is also active, as it will trigger a save of the empty state before the load finishes.
 - **Reset on Refresh:** Ensure the `RESTORE_PROMPT` phase is correctly handled in `initGameState` to allow users to recover active rounds.
+- **Duplicated Names:** Always validate name uniqueness before starting a game to prevent ID collision in the state.
