@@ -20,12 +20,10 @@ export function ResultScreen() {
       const updatedPlayers = state.players.map(p => {
         let newPlayer = { ...p };
 
-        // Incrementar supervivencia si el jugador termina la ronda vivo
-        if (newPlayer.isAlive) {
-          newPlayer.roundsSurvivedCount += 1;
-        }
-
         if (isFarsante) {
+          if (newPlayer.id === accused?.id) {
+            newPlayer.isAlive = false;
+          }
           if (newPlayer.role !== 'farsante' && newPlayer.isAlive) {
             newPlayer.score += 1;
           }
@@ -42,6 +40,12 @@ export function ResultScreen() {
             newPlayer.farsanteWinsCount += 1;
           }
         }
+
+        // Incrementar supervivencia solo si la ronda termina y el jugador sigue vivo
+        if ((isFarsante || isGameOverByNumber) && newPlayer.isAlive) {
+          newPlayer.roundsSurvivedCount += 1;
+        }
+
         return newPlayer;
       });
 

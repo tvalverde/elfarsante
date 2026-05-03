@@ -135,6 +135,12 @@ export function HomeScreen() {
       alert("Se necesitan al menos 3 jugadores.");
       return;
     }
+
+    const uniquePlayers = new Set(validPlayers);
+    if (uniquePlayers.size !== validPlayers.length) {
+      alert("Los nombres de los jugadores deben ser únicos.");
+      return;
+    }
     
     if (farsantesCount > 1 && validPlayers.length < 5) {
       alert("Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.");

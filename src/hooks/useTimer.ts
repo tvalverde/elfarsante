@@ -7,6 +7,12 @@ export function useTimer(initialSeconds: number, onTimeUp?: () => void, autoStar
   useEffect(() => {
     if (!isActive) return;
 
+    if (seconds <= 0) {
+      setIsActive(false);
+      onTimeUp?.();
+      return;
+    }
+
     const interval = setInterval(() => {
       setSeconds((prev) => {
         if (prev <= 1) {
