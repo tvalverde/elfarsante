@@ -18,6 +18,7 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 ### 3. Architecture & UI
 - **Phase-Based Navigation:** The app is a Single Page Application (SPA) driven by a `Phase` string in the global state.
 - **Visual Hierarchy (Game Board):** In `DebateScreen`, prioritize controls (Timer and "Stop" button) by placing them at the top. The player list should follow below to remain accessible regardless of the number of players.
+- **Screen Wake Lock:** Use the `useWakeLock` hook in `App.tsx` to prevent the screen from turning off during the `DEBATE` phase. This API is only available in HTTPS environments and requires user interaction before it can be activated.
 - **Cyber-Noir Design System:**
   - Background: `#0D0D12` (Black).
   - Primary: Cyan Electric (drop shadows, neon glows).

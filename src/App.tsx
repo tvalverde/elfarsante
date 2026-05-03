@@ -6,9 +6,13 @@ import { ResultScreen } from './components/ResultScreen';
 import { ScoreScreen } from './components/ScoreScreen';
 import { RestorePromptScreen } from './components/RestorePromptScreen';
 import { useGameState } from './context/GameStateContext';
+import { useWakeLock } from './hooks/useWakeLock';
 
 function App() {
   const { state } = useGameState();
+
+  // Keep screen awake only during the DEBATE phase
+  useWakeLock(state.currentPhase === 'DEBATE');
 
   return (
     <div className="min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container bg-background">
