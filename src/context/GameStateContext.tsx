@@ -74,7 +74,7 @@ type Action =
   | { type: 'HARD_RESET' }
   | { type: 'LOAD_STATE', payload: GameState };
 
-  function gameReducer(state: GameState, action: Action): GameState {
+export function gameReducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'START_GAME':
       return {
