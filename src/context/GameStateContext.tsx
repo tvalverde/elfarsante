@@ -6,6 +6,10 @@ export interface Player {
   id: string;
   name: string;
   score: number;
+  farsanteCount: number;
+  wronglyEliminatedCount: number;
+  roundsSurvivedCount: number;
+  farsanteWinsCount: number;
   isAlive: boolean;
   role: 'normal' | 'farsante' | null;
 }
@@ -65,11 +69,12 @@ type Action =
   | { type: 'NEXT_PHASE'; payload: Phase }
   | { type: 'NEXT_PLAYER' }
   | { type: 'UPDATE_ROUND'; payload: Partial<RoundData> }
-  | { type: 'UPDATE_PLAYERS'; payload: Player[] }
+  | { type: 'UPDATE_PLAYERS', payload: Player[] }
   | { type: 'RESET_GAME' }
-  | { type: 'LOAD_STATE'; payload: GameState };
+  | { type: 'HARD_RESET' }
+  | { type: 'LOAD_STATE', payload: GameState };
 
-function gameReducer(state: GameState, action: Action): GameState {
+  function gameReducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'START_GAME':
       return {
@@ -97,13 +102,29 @@ function gameReducer(state: GameState, action: Action): GameState {
         players: action.payload
       };
     case 'RESET_GAME':
-      return { ...initialState, players: state.players.map(p => ({ ...p, score: 0, isAlive: true, role: null })) };
+      return { 
+        ...state,
+        currentPhase: 'HOME',
+        players: state.players.map(p => ({ 
+          ...p, 
+          score: 0, 
+          isAlive: true, 
+          role: null 
+        })) 
+      };
+    case 'HARD_RESET':
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('elfarsante_state');
+        localStorage.removeItem('elfarsante_draft_players');
+        localStorage.removeItem('elfarsante_draft_config');
+      }
+      return initialState;
     case 'LOAD_STATE':
       return action.payload;
     default:
       return state;
   }
-}
+  }
 
 const GameStateContext = createContext<{ state: GameState; dispatch: React.Dispatch<Action> } | undefined>(undefined);
 
@@ -114,6 +135,16 @@ function initGameState(initial: GameState): GameState {
     if (savedState) {
       const parsed = JSON.parse(savedState);
       if (parsed && parsed.currentPhase) {
+        // Asegurar que todos los jugadores tengan los nuevos campos de estadísticas si vienen de una versión anterior
+        if (parsed.players) {
+          parsed.players = parsed.players.map((p: any) => ({
+            ...p,
+            farsanteCount: p.farsanteCount ?? 0,
+            wronglyEliminatedCount: p.wronglyEliminatedCount ?? 0,
+            roundsSurvivedCount: p.roundsSurvivedCount ?? 0,
+            farsanteWinsCount: p.farsanteWinsCount ?? 0,
+          }));
+        }
         if (parsed.currentPhase !== 'HOME' && parsed.currentPhase !== 'PUNTUACIONES' && parsed.currentPhase !== 'RESTORE_PROMPT') {
           return { ...parsed, currentPhase: 'RESTORE_PROMPT' };
         } else if (parsed.currentPhase === 'PUNTUACIONES') {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useGameState } from '../context/GameStateContext';
 import { useTimer } from '../hooks/useTimer';
 import { CATEGORY_LABELS } from '../data/dictionary';
@@ -9,27 +9,29 @@ export function DebateScreen() {
   // Capture initial state on mount to prevent instant hide on global state update
   const [shouldShowOverlay] = useState(!state.round.hasShownStartNotice);
   
-  const handleTimeUp = () => {
+  const handleTimeUp = useCallback(() => {
     alert("¡TIEMPO AGOTADO! Votación forzada.");
     dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: 0 } });
     dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' });
-  };
+  }, [dispatch]);
 
-  const timer = useTimer(state.round.remainingTime, handleTimeUp);
+  const timer = useTimer(state.round.remainingTime, handleTimeUp, !shouldShowOverlay);
 
   // Auto-hide start notice after 2.5 seconds
   useEffect(() => {
     if (shouldShowOverlay) {
       const timerId = setTimeout(() => {
         setShowStartNotice(false);
+        timer.play();
       }, 2500);
       return () => clearTimeout(timerId);
     } else {
       setShowStartNotice(false);
+      timer.play();
     }
-  }, [shouldShowOverlay]);
+  }, [shouldShowOverlay]); 
 
-  // Mark notice as shown in global state as soon as it mounts
+  // Mark notice as shown in global state as soon as it mounts, but only once
   useEffect(() => {
     if (!state.round.hasShownStartNotice) {
       dispatch({ type: 'UPDATE_ROUND', payload: { hasShownStartNotice: true } });

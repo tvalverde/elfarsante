@@ -1,25 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export function useTimer(initialSeconds: number, onTimeUp?: () => void) {
+export function useTimer(initialSeconds: number, onTimeUp?: () => void, autoStart: boolean = true) {
   const [seconds, setSeconds] = useState(initialSeconds);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(autoStart);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
+    if (!isActive) return;
 
-    if (isActive && seconds > 0) {
-      interval = setInterval(() => {
-        setSeconds((prev) => prev - 1);
-      }, 1000);
-    } else if (seconds === 0 && isActive) {
-      setIsActive(false);
-      if (onTimeUp) onTimeUp();
-    }
+    const interval = setInterval(() => {
+      setSeconds((prev) => {
+        if (prev <= 1) {
+          setIsActive(false);
+          onTimeUp?.();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, seconds, onTimeUp]);
+    return () => clearInterval(interval);
+  }, [isActive, onTimeUp]);
 
   const pause = useCallback(() => setIsActive(false), []);
   const play = useCallback(() => setIsActive(true), []);

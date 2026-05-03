@@ -8,56 +8,70 @@ export function ResultScreen() {
   const accused = state.players.find(p => p.id === state.round.accusedId);
   const isFarsante = state.round.farsanteIds.includes(accused?.id || '');
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsProcessing(false);
-      
-      const aliveInnocentsCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role !== 'farsante').length;
-      const aliveFarsantesCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role === 'farsante').length;
-      
-      // El farsante gana si logra igualar en número a los inocentes (descarte matemático sin salvación)
-      const farsanteWins = !isFarsante && (aliveFarsantesCount >= aliveInnocentsCount);
+  // Calcular si los farsantes ganan por número en esta pantalla
+  const aliveInnocentsCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role !== 'farsante').length;
+  const aliveFarsantesCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role === 'farsante').length;
+  const isGameOverByNumber = !isFarsante && (aliveFarsantesCount >= aliveInnocentsCount);
 
+  useEffect(() => {
+    if (!isProcessing) return;
+
+    const timer = setTimeout(() => {
       const updatedPlayers = state.players.map(p => {
+        let newPlayer = { ...p };
+
+        // Incrementar supervivencia si el jugador termina la ronda vivo
+        if (newPlayer.isAlive) {
+          newPlayer.roundsSurvivedCount += 1;
+        }
+
         if (isFarsante) {
-          // Si atraparon a UN farsante. Note: for multiple, game might need to continue, 
-          // but for MVP standard: Catching any farsante ends the round in victory for the village.
-          if (p.role !== 'farsante' && p.isAlive) {
-            return { ...p, score: p.score + 1 };
+          if (newPlayer.role !== 'farsante' && newPlayer.isAlive) {
+            newPlayer.score += 1;
           }
         } else {
-          // Si acusaron a un inocente, este muere pero gana un punto.
-          if (p.id === accused?.id) {
-            return { ...p, isAlive: false, score: p.score + 1 };
+          if (newPlayer.id === accused?.id) {
+            newPlayer.isAlive = false;
+            newPlayer.score += 1;
+            // Registrar eliminación injusta (Cara de culpable)
+            newPlayer.wronglyEliminatedCount += 1;
           }
-          // Si los Farsantes ganan por descarte matemático, reciben +2 puntos.
-          if (farsanteWins && p.role === 'farsante') {
-            return { ...p, score: p.score + 2 };
+          if (isGameOverByNumber && newPlayer.role === 'farsante') {
+            newPlayer.score += 2;
+            // Registrar victoria del farsante (Maestro del engaño)
+            newPlayer.farsanteWinsCount += 1;
           }
         }
-        return p;
+        return newPlayer;
       });
 
       dispatch({ type: 'UPDATE_PLAYERS', payload: updatedPlayers });
 
-      // Apply Penalty on time if fail
-      if (!isFarsante && state.config.penaltyOnFail && !farsanteWins) {
+      if (!isFarsante && state.config.penaltyOnFail && !isGameOverByNumber) {
         dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: Math.max(0, state.round.remainingTime - 60) } });
       }
 
+      setIsProcessing(false);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [accused?.id, dispatch, isFarsante, state.players, state.config.penaltyOnFail, state.round.remainingTime]);
+  }, [accused?.id, isFarsante, state.config.penaltyOnFail, isProcessing, isGameOverByNumber, state.players, dispatch]);
+
+  const handleFinishRound = (farsanteGuessed: boolean) => {
+    if (farsanteGuessed) {
+      const updatedPlayers = state.players.map(p => 
+        p.id === accused?.id ? { ...p, score: p.score + 1, farsanteWinsCount: p.farsanteWinsCount + 1 } : p
+      );
+      dispatch({ type: 'UPDATE_PLAYERS', payload: updatedPlayers });
+    }
+    dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' });
+  };
 
   const handleNext = () => {
     if (isFarsante) {
-      dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' });
+      // Handled by handleFinishRound
     } else {
-      const aliveInnocentsCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role !== 'farsante').length;
-      const aliveFarsantesCount = state.players.filter(p => p.id !== accused?.id && p.isAlive && p.role === 'farsante').length;
-      
-      if (aliveFarsantesCount >= aliveInnocentsCount) {
+      if (isGameOverByNumber) {
         dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' });
       } else {
         dispatch({ type: 'NEXT_PHASE', payload: 'DEBATE' });
@@ -79,6 +93,15 @@ export function ResultScreen() {
   const glowClass = isFarsante ? 'drop-shadow-[0_0_20px_rgba(0,255,136,0.6)]' : 'drop-shadow-[0_0_20px_rgba(255,42,95,0.6)]';
   const icon = isFarsante ? 'check_circle' : 'cancel';
 
+  let resultMessage = '';
+  if (isFarsante) {
+    resultMessage = 'El grupo ha deducido correctamente. Pero espera...';
+  } else if (isGameOverByNumber) {
+    resultMessage = '¡Victoria de los Farsantes! Han logrado superar en número a los inocentes.';
+  } else {
+    resultMessage = 'Se ha eliminado a un inocente. La tensión aumenta.';
+  }
+
   return (
     <div className="flex flex-col items-center justify-center flex-grow p-container-padding max-w-2xl mx-auto text-center w-full relative z-10">
       <div className="mb-element-gap relative">
@@ -93,15 +116,33 @@ export function ResultScreen() {
       </h2>
       
       <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mt-4">
-        {isFarsante ? 'El grupo ha deducido correctamente. Fin de la ronda.' : 'Se ha eliminado a un inocente. La tensión aumenta.'}
+        {resultMessage}
       </p>
 
-      <button 
-        onClick={handleNext}
-        className="w-full max-w-sm mt-12 py-4 border border-outline-variant text-on-surface font-label-pill text-label-pill rounded-lg hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all uppercase tracking-wider active:scale-95"
-      >
-        Continuar
-      </button>
+      {isFarsante ? (
+        <div className="w-full max-w-sm mt-12 flex flex-col gap-4">
+          <p className="text-primary-container font-bold uppercase tracking-widest text-sm mb-2">¿Ha adivinado la palabra secreta?</p>
+          <button 
+            onClick={() => handleFinishRound(true)}
+            className="w-full py-4 bg-primary-container/10 border-2 border-primary-container text-primary-container font-bold rounded-lg hover:bg-primary-container hover:text-on-primary-fixed transition-all uppercase tracking-wider active:scale-95 shadow-[0_0_15px_rgba(0,229,255,0.2)]"
+          >
+            SÍ, LA HA ADIVINADO (+1pt)
+          </button>
+          <button 
+            onClick={() => handleFinishRound(false)}
+            className="w-full py-4 border border-outline-variant text-outline hover:text-on-surface hover:border-on-surface transition-all uppercase tracking-wider active:scale-95"
+          >
+            NO, HA FALLADO
+          </button>
+        </div>
+      ) : (
+        <button 
+          onClick={handleNext}
+          className="w-full max-w-sm mt-12 py-4 border border-outline-variant text-on-surface font-label-pill text-label-pill rounded-lg hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all uppercase tracking-wider active:scale-95"
+        >
+          {isGameOverByNumber ? 'Ver Puntuaciones' : 'Continuar'}
+        </button>
+      )}
     </div>
   );
 }

@@ -172,12 +172,17 @@ export function HomeScreen() {
     
     const gamePlayers: Player[] = validPlayers.map((name, index) => {
       const existingPlayer = state.players.find(p => p.name === name);
+      const isFarsante = farsanteIndices.includes(index);
       return {
         id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
         name,
         score: existingPlayer ? existingPlayer.score : 0,
+        farsanteCount: (existingPlayer ? existingPlayer.farsanteCount : 0) + (isFarsante ? 1 : 0),
+        wronglyEliminatedCount: existingPlayer ? existingPlayer.wronglyEliminatedCount : 0,
+        roundsSurvivedCount: existingPlayer ? existingPlayer.roundsSurvivedCount : 0,
+        farsanteWinsCount: existingPlayer ? existingPlayer.farsanteWinsCount : 0,
         isAlive: true,
-        role: farsanteIndices.includes(index) ? 'farsante' : 'normal'
+        role: isFarsante ? 'farsante' : 'normal'
       };
     });
 
@@ -231,7 +236,16 @@ export function HomeScreen() {
       
       {/* Players Panel */}
       <section className="w-full flex flex-col gap-element-gap">
-        <h2 className="font-h2 text-h2 text-on-surface mb-2">Jugadores</h2>
+        <div className="flex justify-between items-end mb-2">
+          <h2 className="font-h2 text-h2 text-on-surface">Jugadores</h2>
+          <button 
+            onClick={() => dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' })}
+            className="flex items-center gap-1 text-primary-container text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
+          >
+            <span className="material-symbols-outlined text-lg">emoji_events</span>
+            Marcadores
+          </button>
+        </div>
         <div className="bg-surface-container-high rounded-xl p-container-padding flex flex-col gap-element-gap border border-surface-bright">
           <div className="flex flex-col gap-3">
             {players.map((player, index) => (
@@ -338,6 +352,21 @@ export function HomeScreen() {
                 <input type="checkbox" checked={blindTimer} onChange={() => setBlindTimer(!blindTimer)} className="hidden" />
                 <span className="font-body-md text-on-surface">Cronómetro Oculto (Modo Hardcore)</span>
               </label>
+            </div>
+
+            {/* Danger Zone: Hard Reset */}
+            <div className="mt-4 pt-4 border-t border-outline-variant/30">
+              <button 
+                onClick={() => {
+                  if (confirm('¿ESTÁS SEGURO? Se borrarán todos los jugadores, marcadores e HISTORIAL DE INFAMIA permanentemente.')) {
+                    dispatch({ type: 'HARD_RESET' });
+                    window.location.reload(); // Force reload to clear all local states
+                  }
+                }}
+                className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-lg"
+              >
+                Borrar todos los datos
+              </button>
             </div>
 
           </div>
