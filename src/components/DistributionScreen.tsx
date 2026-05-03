@@ -28,21 +28,21 @@ export function DistributionScreen() {
   if (!currentPlayer) return null;
 
   return (
-    <div className="flex flex-col items-center justify-between px-container-padding py-section-margin relative z-0 flex-grow h-full w-full max-w-md mx-auto">
+    <div className="flex flex-col items-center justify-between px-container-padding py-2 relative z-0 flex-grow h-full w-full max-w-md mx-auto overflow-hidden">
       
       {/* Top Text Content */}
-      <div className="text-center w-full flex flex-col gap-element-gap items-center mt-8">
-        <h2 className="font-h1 text-[48px] font-black text-primary-container drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] uppercase tracking-wider leading-tight">
+      <div className="text-center w-full flex flex-col gap-1 items-center mt-2">
+        <h2 className="font-h1 text-[32px] font-black text-primary-container drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] uppercase tracking-wider leading-tight">
           Turno de <br/>
           <span className="text-white">{currentPlayer.name}</span>
         </h2>
-        <p className="font-body-md text-body-md text-secondary max-w-xs mx-auto mt-2">Asegúrate de que nadie más mire la pantalla</p>
+        <p className="font-body-md text-secondary max-w-xs mx-auto text-xs opacity-80">Asegúrate de que nadie más mire la pantalla</p>
       </div>
 
       {/* Central Interactive Area */}
       <div 
         ref={containerRef}
-        className={`w-full max-w-sm aspect-[3/4] bg-[#1A1A24] border border-primary-container rounded-xl flex flex-col items-center justify-center p-8 gap-8 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
+        className={`w-full max-w-[260px] aspect-[3/4] bg-[#1A1A24] border border-primary-container rounded-xl flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
         onPointerDown={handleStartReveal}
         onPointerUp={handleEndReveal}
         onPointerLeave={handleEndReveal}
@@ -51,25 +51,25 @@ export function DistributionScreen() {
         <div className={`absolute inset-0 bg-primary-container opacity-0 transition-opacity duration-300 pointer-events-none rounded-xl ${isRevealed ? 'opacity-10' : 'group-active:opacity-10'}`}></div>
         
         {isRevealed ? (
-          <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-200">
-            <h3 className="font-h2 text-h2 text-primary-container mb-2">Tu rol:</h3>
-            <p className="font-h1 text-[48px] font-black text-white drop-shadow-[0_0_15px_rgba(0,229,255,0.8)] text-center leading-tight">
+          <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-200">
+            <h3 className="font-h2 text-h2 text-primary-container">Tu rol:</h3>
+            <p className="font-h1 text-[36px] font-black text-white drop-shadow-[0_0_15px_rgba(0,229,255,0.8)] text-center leading-tight">
               {currentPlayer.role === 'farsante' ? 'ERES EL FARSANTE' : state.round.word}
             </p>
-            <p className="font-body-md text-on-surface-variant text-center mt-4">
+            <p className="font-body-md text-on-surface-variant text-center mt-2">
               {currentPlayer.role === 'farsante' 
                 ? 'Intenta pasar desapercibido.' 
                 : `Categoría: ${state.round.category}`}
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-6 animate-subtle-pulse">
-            <div className="w-24 h-24 rounded-full border border-primary-container/30 flex items-center justify-center relative">
-              <span className="material-symbols-outlined text-primary-container text-[64px]" style={{ fontVariationSettings: "'FILL' 0" }}>fingerprint</span>
+          <div className="flex flex-col items-center gap-4 animate-subtle-pulse">
+            <div className="w-32 h-32 rounded-full border border-primary-container/30 flex items-center justify-center relative">
+              <span className="material-symbols-outlined text-primary-container text-[80px]" style={{ fontVariationSettings: "'FILL' 0" }}>fingerprint</span>
               <div className="absolute inset-0 rounded-full shadow-[0_0_20px_rgba(0,229,255,0.2)] pointer-events-none"></div>
             </div>
-            <span className="material-symbols-outlined text-primary-container text-4xl animate-bounce" style={{ fontVariationSettings: "'FILL' 0" }}>keyboard_double_arrow_up</span>
-            <p className="font-body-md text-body-md text-on-surface text-center mt-4 px-4">Mantén presionado para revelar tu secreto</p>
+            <span className="material-symbols-outlined text-primary-container text-2xl animate-bounce" style={{ fontVariationSettings: "'FILL' 0" }}>keyboard_double_arrow_up</span>
+            <p className="font-body-md text-body-md text-on-surface text-center px-4 leading-tight">Mantén presionado para revelar</p>
           </div>
         )}
         
@@ -77,7 +77,7 @@ export function DistributionScreen() {
       </div>
 
       {/* Bottom Action */}
-      <div className="w-full max-w-sm mt-8 mb-8">
+      <div className="w-full max-w-sm mt-4 mb-4 px-4">
         <button 
           onClick={handleNext}
           className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-lg hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"

@@ -36,7 +36,7 @@ export function DebateScreen() {
       </section>
 
       {/* Giant Timer */}
-      <section className="w-full flex justify-center items-center py-8">
+      <section className="w-full flex justify-center items-center py-4">
         <div className={`font-h1 text-[80px] leading-none tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-colors duration-300 ${isUrgent ? 'text-neon-red drop-shadow-[0_0_20px_rgba(255,42,95,0.6)] animate-pulse' : 'text-on-background'}`}>
           {state.config.blindTimer && timer.seconds > 30 ? (
              <span className="animate-pulse">?:??</span>
@@ -46,8 +46,19 @@ export function DebateScreen() {
         </div>
       </section>
 
+      {/* Action Button */}
+      <section className="w-full">
+        <button 
+          onClick={handleAcusar}
+          className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-xl flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all active:scale-95 neon-glow-red uppercase tracking-wide"
+        >
+          <span>DETENER Y ACUSAR</span>
+          <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>front_hand</span>
+        </button>
+      </section>
+
       {/* Players List */}
-      <section className="w-full bg-cyber-noir-surface rounded-xl border border-outline-variant p-element-gap flex flex-col gap-unit">
+      <section className="w-full bg-cyber-noir-surface rounded-xl border border-outline-variant p-element-gap flex flex-col gap-unit mb-8">
         {state.players.map((player) => (
           <div 
             key={player.id} 
@@ -75,17 +86,6 @@ export function DebateScreen() {
             </div>
           </div>
         ))}
-      </section>
-
-      {/* Action Button */}
-      <section className="w-full mt-auto mb-8">
-        <button 
-          onClick={handleAcusar}
-          className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-xl flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all active:scale-95 neon-glow-red uppercase tracking-wide"
-        >
-          <span>DETENER Y ACUSAR</span>
-          <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>front_hand</span>
-        </button>
       </section>
     </div>
   );
