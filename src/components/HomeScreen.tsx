@@ -130,7 +130,7 @@ export function HomeScreen() {
         round: {
           word: chosenWord,
           category: CATEGORY_LABELS[chosenCat] || chosenCat,
-          farsanteIds: farsanteIndices.map(i => `p-${i}`),
+          farsanteIds: gamePlayers.filter(p => p.role === 'farsante').map(p => p.id),
           remainingTime: timerDuration,
           accusedId: null,
           currentPlayerIndex: 0,
