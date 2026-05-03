@@ -32,7 +32,7 @@ export function ScoreScreen() {
   const immortal = getLeaders('roundsSurvivedCount');
 
   return (
-    <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-md mx-auto gap-section-margin flex-grow mt-8">
+    <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-md mx-auto gap-section-margin flex-grow mt-8 pb-[180px]">
       <section className="flex flex-col items-center justify-center mb-4 w-full text-center">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-4xl text-primary-container drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
