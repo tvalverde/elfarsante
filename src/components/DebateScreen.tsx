@@ -29,6 +29,12 @@ export function DebateScreen() {
 
   const isUrgent = timer.seconds <= 30;
 
+  // Reorder players so the starting player is first, maintaining circular order
+  const startingIndex = state.players.findIndex(p => p.id === state.round.startingPlayerId);
+  const orderedPlayers = startingIndex === -1 
+    ? state.players 
+    : [...state.players.slice(startingIndex), ...state.players.slice(0, startingIndex)];
+
   return (
     <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-3xl mx-auto gap-section-margin flex-grow mt-8">
       {/* Category Header */}
@@ -67,7 +73,7 @@ export function DebateScreen() {
 
       {/* Players List */}
       <section className="w-full bg-cyber-noir-surface rounded-xl border border-outline-variant p-element-gap flex flex-col gap-unit mb-8">
-        {state.players.map((player) => (
+        {orderedPlayers.map((player) => (
           <div 
             key={player.id} 
             className={`flex items-center justify-between p-4 rounded-lg bg-surface-container-low border ${player.isAlive ? 'border-outline/20' : 'border-error-container/30 opacity-40 grayscale blur-[0.5px]'}`}
