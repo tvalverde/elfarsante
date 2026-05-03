@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useGameState } from '../context/GameStateContext';
 import { NeonButton } from './ui/NeonButton';
 
 export function ScoreScreen() {
   const { state, dispatch } = useGameState();
-  const [showHistory, setShowHistory] = useState(true);
   
   const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score);
   const highestScore = sortedPlayers[0]?.score || 0;
@@ -65,18 +63,14 @@ export function ScoreScreen() {
         ))}
       </section>
 
-      {/* History Toggle */}
+      {/* History Section */}
       <div className="w-full flex flex-col items-center gap-4">
-        <button 
-          onClick={() => setShowHistory(!showHistory)}
-          className="flex items-center gap-2 text-outline hover:text-primary-container transition-colors text-xs font-bold uppercase tracking-[0.2em] py-2"
-        >
-          <span className="material-symbols-outlined text-sm">{showHistory ? 'expand_less' : 'history_edu'}</span>
-          {showHistory ? 'Ocultar Historial' : 'Historial de la infamia'}
-        </button>
+        <div className="flex items-center gap-2 text-outline text-xs font-bold uppercase tracking-[0.2em] py-2">
+          <span className="material-symbols-outlined text-sm">history_edu</span>
+          Historial de la infamia
+        </div>
 
-        {showHistory && (
-          <div className="grid grid-cols-2 gap-3 w-full animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="grid grid-cols-2 gap-3 w-full">
             {/* Card 1: Farsante */}
             <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
               <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">Sospechoso Habitual</span>
@@ -102,7 +96,6 @@ export function ScoreScreen() {
               <span className="text-[10px] text-outline">{immortal ? `${immortal.value} rondas` : 'Sin datos'}</span>
             </div>
           </div>
-        )}
       </div>
 
       {/* Fixed bottom Action Buttons */}
