@@ -66,16 +66,8 @@ export function ResultScreen() {
     }, 3000)
 
     return () => clearTimeout(timer)
-  }, [
-    accused?.id,
-    isFarsante,
-    state.config.penaltyOnFail,
-    isProcessing,
-    isGameOverByNumber,
-    state.players,
-    dispatch,
-    state.round.remainingTime,
-  ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProcessing])
 
   const handleFinishRound = (farsanteGuessed: boolean) => {
     if (farsanteGuessed) {

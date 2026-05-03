@@ -26,7 +26,8 @@ export function useTimer(initialSeconds: number, onTimeUp?: () => void, autoStar
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [isActive, onTimeUp, seconds])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, onTimeUp])
 
   const pause = useCallback(() => setIsActive(false), [])
   const play = useCallback(() => setIsActive(true), [])
