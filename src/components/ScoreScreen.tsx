@@ -105,22 +105,25 @@ export function ScoreScreen() {
         )}
       </div>
 
-      <div className="w-full mt-auto mb-8 flex flex-col gap-3">
-        <NeonButton fullWidth onClick={handleNextRound}>
-          {isTournamentOver ? 'FINALIZAR PARTIDA' : 'SIGUIENTE RONDA'}
-        </NeonButton>
-        {!isTournamentOver && (
-          <button 
-            onClick={() => {
-              if (confirm('¿Estás seguro de que quieres reiniciar todas las puntuaciones?')) {
-                dispatch({ type: 'RESET_GAME' });
-              }
-            }}
-            className="text-outline-variant hover:text-error text-sm font-medium transition-colors py-2 uppercase tracking-tighter opacity-70 hover:opacity-100"
-          >
-            Reiniciar Marcadores
-          </button>
-        )}
+      {/* Fixed bottom Action Buttons */}
+      <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
+        <div className="w-full max-w-md pointer-events-auto flex flex-col gap-3">
+          <NeonButton fullWidth onClick={handleNextRound}>
+            {isTournamentOver ? 'FINALIZAR PARTIDA' : 'SIGUIENTE RONDA'}
+          </NeonButton>
+          {!isTournamentOver && (
+            <button 
+              onClick={() => {
+                if (confirm('¿Estás seguro de que quieres reiniciar todas las puntuaciones?')) {
+                  dispatch({ type: 'RESET_GAME' });
+                }
+              }}
+              className="text-outline-variant hover:text-error text-sm font-medium transition-colors py-2 uppercase tracking-tighter opacity-70 hover:opacity-100"
+            >
+              Reiniciar Marcadores
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

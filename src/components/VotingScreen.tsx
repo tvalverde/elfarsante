@@ -10,14 +10,16 @@ export function VotingScreen() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start p-container-padding w-full max-w-md mx-auto gap-section-margin flex-grow mt-8">
-      <h2 className="font-h1 text-h1 text-on-surface text-center mb-8 uppercase tracking-widest text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
-        ¿Quién es el Farsante?
-      </h2>
-      
-      <p className="font-body-md text-body-md text-outline mt-2 text-center mb-4">Selecciona al jugador acusado</p>
+    <div className="flex flex-col items-center justify-start w-full max-w-md mx-auto flex-grow">
+      {/* Sticky Header */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md w-full pt-8 pb-6 px-container-padding border-b border-outline-variant/30 flex flex-col items-center">
+        <h2 className="font-h1 text-h1 text-on-surface text-center uppercase tracking-widest text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
+          ¿Quién es el Farsante?
+        </h2>
+        <p className="font-body-md text-body-md text-outline mt-2 text-center">Selecciona al jugador acusado</p>
+      </div>
 
-      <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-4 p-container-padding pb-8">
         {alivePlayers.map(player => (
           <button 
             key={player.id}
