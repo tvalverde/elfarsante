@@ -13,6 +13,9 @@ const AVAILABLE_CATEGORIES = [
   'deportes',
   'lugares',
   'objetos_casa',
+  'summer',
+  'fashion',
+  'christmas',
 ]
 
 export function HomeScreen() {

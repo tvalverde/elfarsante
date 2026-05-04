@@ -44,4 +44,5 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **ID Mismatch:** Avoid generating new IDs for existing players, as it breaks role detection and score tracking.
 - **State Overwrite:** Never set initial state in `useEffect` if a save-to-storage `useEffect` is also active, as it will trigger a save of the empty state before the load finishes.
 - **Reset on Refresh:** Ensure the `RESTORE_PROMPT` phase is correctly handled in `initGameState` to allow users to recover active rounds.
+- **Orphan Categories:** When adding new categories in `dictionary.ts`, always ensure they are registered in the `AVAILABLE_CATEGORIES` constant in `HomeScreen.tsx` to make them visible in the UI.
 - **Duplicated Names:** Always validate name uniqueness before starting a game to prevent ID collision in the state.

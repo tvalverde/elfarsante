@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { HomeScreen } from './components/HomeScreen'
 import { DistributionScreen } from './components/DistributionScreen'
 import { DebateScreen } from './components/DebateScreen'
@@ -14,11 +14,32 @@ import { CyberToast } from './components/ui/CyberToast'
 declare const __APP_VERSION__: string
 
 function App() {
-  const { state } = useGameState()
+  const { state, dispatch } = useGameState()
+  const { currentPhase } = state
   const [isHelpOpen, setIsHelpOpen] = useState(false)
 
-  // Keep screen awake only during the DEBATE phase
-  useWakeLock(state.currentPhase === 'DEBATE')
+  // Keep screen awake globally
+  useWakeLock(true)
+
+  // Return to RESTORE_PROMPT when the app goes to background during an active game
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (
+          currentPhase !== 'HOME' &&
+          currentPhase !== 'PUNTUACIONES' &&
+          currentPhase !== 'RESTORE_PROMPT'
+        ) {
+          dispatch({ type: 'NEXT_PHASE', payload: 'RESTORE_PROMPT' })
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [currentPhase, dispatch])
 
   return (
     <div className="min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container bg-background">
