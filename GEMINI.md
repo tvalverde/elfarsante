@@ -52,3 +52,8 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Haptic Feedback:** The `navigator.vibrate` API only works in Chromium-based browsers (Chrome, Edge) on Android. Firefox (Android) and Safari (iOS) have this functionality disabled or not implemented.
 - **Audio Autoplay:** Sound playback (both MP3 and synthetic) requires prior user interaction (click/tap) on the page. The first button pressed (e.g., "Start") will enable audio for the entire session.
 - **Synthetic Fallback:** The system uses the `Web Audio API` to generate electronic tones if physical `.mp3` files are missing from `public/sfx/`.
+
+### 6. Code Quality & CI Hooks
+
+- **Hook Maintenance:** Before committing, ensure all modified file types are covered by the `lint-staged` configuration in `package.json` (e.g., if editing `.html` or `.yml`, they must be included). This ensures the git hook formats the code and prevents CI pipeline failures.
+- **Strict Formatting:** Maintain strictly formatted code using Prettier. When in doubt, run `npm run format` locally.

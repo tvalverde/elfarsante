@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react'
 import { useGameState } from '../context/GameStateContext'
+import { useSFX } from '../hooks/useSFX'
 
 export function DistributionScreen() {
   const { state, dispatch } = useGameState()
+  const { playTick } = useSFX()
   const [isRevealed, setIsRevealed] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -18,6 +20,7 @@ export function DistributionScreen() {
   }
 
   const handleNext = () => {
+    playTick()
     if (isLastPlayer) {
       dispatch({ type: 'NEXT_PHASE', payload: 'DEBATE' })
     } else {
@@ -48,6 +51,7 @@ export function DistributionScreen() {
         onPointerUp={handleEndReveal}
         onPointerLeave={handleEndReveal}
         onPointerCancel={handleEndReveal}
+        onContextMenu={(e) => e.preventDefault()}
       >
         <div
           className={`absolute inset-0 bg-primary-container opacity-0 transition-opacity duration-300 pointer-events-none rounded-xl ${isRevealed ? 'opacity-10' : 'group-active:opacity-10'}`}
