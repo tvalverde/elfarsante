@@ -1,12 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useGameState } from '../context/GameStateContext'
+import { useSFX } from '../hooks/useSFX'
 
 export function ResultScreen() {
   const { state, dispatch } = useGameState()
+  const { playSuccess, playFail } = useSFX()
   const [isProcessing, setIsProcessing] = useState(true)
 
   const accused = state.players.find((p) => p.id === state.round.accusedId)
   const isFarsante = state.round.farsanteIds.includes(accused?.id || '')
+
+  // Sound effect when revealing result
+  useEffect(() => {
+    if (!isProcessing) {
+      if (isFarsante) {
+        playSuccess()
+      } else {
+        playFail()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProcessing, isFarsante])
 
   // Calcular si los farsantes ganan por número en esta pantalla
   const aliveInnocentsCount = state.players.filter(

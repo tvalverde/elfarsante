@@ -1,4 +1,5 @@
 import React from 'react'
+import { useSFX } from '../../hooks/useSFX'
 
 interface NeonButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'danger' | 'ghost'
@@ -10,8 +11,18 @@ export function NeonButton({
   variant = 'primary',
   fullWidth = false,
   className = '',
+  onClick,
   ...props
 }: NeonButtonProps) {
+  const { playTick } = useSFX()
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    playTick()
+    if (onClick) {
+      onClick(e)
+    }
+  }
+
   let baseStyles =
     'active:scale-[0.98] transition-all duration-200 pointer-events-auto flex items-center justify-center gap-2 '
 
@@ -31,7 +42,7 @@ export function NeonButton({
   }
 
   return (
-    <button className={`${baseStyles} ${className}`} {...props}>
+    <button className={`${baseStyles} ${className}`} onClick={handleClick} {...props}>
       {children}
     </button>
   )
