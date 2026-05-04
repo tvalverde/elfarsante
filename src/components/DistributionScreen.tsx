@@ -31,7 +31,7 @@ export function DistributionScreen() {
   if (!currentPlayer) return null
 
   return (
-    <div className="flex flex-col items-center justify-between px-container-padding py-2 relative z-0 flex-grow h-full w-full max-w-md mx-auto overflow-hidden">
+    <div className="flex flex-col items-center justify-start px-container-padding py-2 relative z-0 flex-grow w-full max-w-md mx-auto overflow-y-auto pb-[120px]">
       {/* Top Text Content */}
       <div className="text-center w-full flex flex-col gap-1 items-center mt-2">
         <h2 className="font-h1 text-[32px] font-black text-primary-container drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] uppercase tracking-wider leading-tight">
@@ -46,7 +46,7 @@ export function DistributionScreen() {
       {/* Central Interactive Area */}
       <div
         ref={containerRef}
-        className={`w-full max-w-[260px] aspect-[3/4] bg-[#1A1A24] border border-primary-container rounded-xl flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
+        className={`w-full max-w-[260px] aspect-[3/4] bg-[#1A1A24] border border-primary-container rounded-xl flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 mt-8 mb-8 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
         onPointerDown={handleStartReveal}
         onPointerUp={handleEndReveal}
         onPointerLeave={handleEndReveal}
@@ -98,14 +98,16 @@ export function DistributionScreen() {
         ></div>
       </div>
 
-      {/* Bottom Action */}
-      <div className="w-full max-w-sm mt-4 mb-4 px-4">
-        <button
-          onClick={handleNext}
-          className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-lg hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"
-        >
-          {isLastPlayer ? 'Empezar Debate' : 'Siguiente Jugador'}
-        </button>
+      {/* Fixed bottom Action */}
+      <div className="fixed bottom-0 left-0 w-full z-50 p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
+        <div className="w-full max-w-sm mx-auto pointer-events-auto">
+          <button
+            onClick={handleNext}
+            className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-lg hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"
+          >
+            {isLastPlayer ? 'Empezar Debate' : 'Siguiente Jugador'}
+          </button>
+        </div>
       </div>
     </div>
   )
