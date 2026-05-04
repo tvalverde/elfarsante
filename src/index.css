@@ -74,5 +74,11 @@
 }
 
 body {
-  @apply bg-background text-on-background font-body-md antialiased;
+  @apply bg-background text-on-background font-body-md antialiased select-none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  @apply select-text;
 }
