@@ -86,8 +86,6 @@ export function useSFX() {
   const playTick = () => {
     // Standard haptic feedback for buttons
     vibrate(10)
-    // Optional: very subtle synth click
-    playTone(880, 'sine', 0.02, 0.02) // A5 (very short)
   }
 
   return { playSuccess, playFail, playTick, vibrate }
