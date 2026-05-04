@@ -1,4 +1,5 @@
 import { useGameState } from '../context/GameStateContext'
+import { NeonButton } from './ui/NeonButton'
 
 export function VotingScreen() {
   const { state, dispatch } = useGameState()
@@ -10,7 +11,7 @@ export function VotingScreen() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-start w-full max-w-md mx-auto flex-grow">
+    <div className="flex flex-col items-center justify-start w-full max-w-md mx-auto flex-grow pb-[120px]">
       {/* Sticky Header */}
       <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md w-full pt-8 pb-6 px-container-padding border-b border-outline-variant/30 flex flex-col items-center">
         <h2 className="font-h1 text-h1 text-on-surface text-center uppercase tracking-widest text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
@@ -31,6 +32,21 @@ export function VotingScreen() {
             {player.name}
           </button>
         ))}
+      </div>
+
+      {/* Fixed bottom Cancel Action */}
+      <div className="fixed bottom-0 left-0 w-full z-50 p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
+        <div className="pointer-events-auto">
+          <NeonButton
+            variant="ghost"
+            fullWidth
+            onClick={() => dispatch({ type: 'NEXT_PHASE', payload: 'DEBATE' })}
+            className="text-outline hover:text-on-surface uppercase tracking-tighter"
+          >
+            <span className="material-symbols-outlined text-lg">undo</span>
+            CANCELAR ACUSACIÓN
+          </NeonButton>
+        </div>
       </div>
     </div>
   )

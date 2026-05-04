@@ -7,7 +7,6 @@ import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
 import { useToast } from '../context/ToastContext'
 
 const AVAILABLE_CATEGORIES = [
-  'profesiones',
   'comida_bebida',
   'animales',
   'deportes',
@@ -16,6 +15,7 @@ const AVAILABLE_CATEGORIES = [
   'summer',
   'fashion',
   'christmas',
+  'profesiones',
 ]
 
 export function HomeScreen() {
@@ -298,15 +298,29 @@ export function HomeScreen() {
       <section className="w-full flex flex-col gap-element-gap">
         <h2 className="font-h2 text-h2 text-on-surface mb-2">Categorías</h2>
         <div className="flex flex-wrap gap-3">
-          {AVAILABLE_CATEGORIES.map((category) => (
-            <PillTag
-              key={category}
-              active={selectedCategories.includes(category)}
-              onClick={() => toggleCategory(category)}
-            >
-              {CATEGORY_LABELS[category]}
-            </PillTag>
-          ))}
+          {AVAILABLE_CATEGORIES.map((category) => {
+            const icons: Record<string, string> = {
+              profesiones: 'work',
+              comida_bebida: 'restaurant',
+              animales: 'pets',
+              deportes: 'sports_soccer',
+              lugares: 'public',
+              objetos_casa: 'chair',
+              summer: 'sunny',
+              fashion: 'checkroom',
+              christmas: 'park',
+            }
+            return (
+              <PillTag
+                key={category}
+                active={selectedCategories.includes(category)}
+                onClick={() => toggleCategory(category)}
+                icon={icons[category]}
+              >
+                {CATEGORY_LABELS[category]}
+              </PillTag>
+            )
+          })}
         </div>
       </section>
 

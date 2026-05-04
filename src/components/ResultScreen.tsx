@@ -59,8 +59,8 @@ export function ResultScreen() {
           }
         }
 
-        // Incrementar supervivencia solo si la ronda termina y el jugador sigue vivo
-        if ((isFarsante || isGameOverByNumber) && newPlayer.isAlive) {
+        // Incrementar supervivencia solo para farsantes si ganan la partida (engañando a los inocentes)
+        if (isGameOverByNumber && newPlayer.role === 'farsante' && newPlayer.isAlive) {
           newPlayer.roundsSurvivedCount += 1
         }
 
