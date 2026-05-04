@@ -46,3 +46,9 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Reset on Refresh:** Ensure the `RESTORE_PROMPT` phase is correctly handled in `initGameState` to allow users to recover active rounds.
 - **Orphan Categories:** When adding new categories in `dictionary.ts`, always ensure they are registered in the `AVAILABLE_CATEGORIES` constant in `HomeScreen.tsx` to make them visible in the UI.
 - **Duplicated Names:** Always validate name uniqueness before starting a game to prevent ID collision in the state.
+
+### 5. Hardware Compatibility (Audio & Haptics)
+
+- **Haptic Feedback:** The `navigator.vibrate` API only works in Chromium-based browsers (Chrome, Edge) on Android. Firefox (Android) and Safari (iOS) have this functionality disabled or not implemented.
+- **Audio Autoplay:** Sound playback (both MP3 and synthetic) requires prior user interaction (click/tap) on the page. The first button pressed (e.g., "Start") will enable audio for the entire session.
+- **Synthetic Fallback:** The system uses the `Web Audio API` to generate electronic tones if physical `.mp3` files are missing from `public/sfx/`.
