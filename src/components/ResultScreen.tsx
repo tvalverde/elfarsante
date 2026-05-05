@@ -160,13 +160,13 @@ export function ResultScreen() {
           </p>
           <button
             onClick={() => handleFinishRound(true)}
-            className="w-full py-4 bg-primary-container/10 border-2 border-primary-container text-primary-container font-bold rounded-lg hover:bg-primary-container hover:text-on-primary-fixed transition-all uppercase tracking-wider active:scale-95 shadow-[0_0_15px_rgba(0,229,255,0.2)]"
+            className="w-full py-4 bg-primary-container/10 border-2 border-primary-container text-primary-container font-bold rounded-full hover:bg-primary-container hover:text-background transition-all uppercase tracking-wider active:scale-[0.98] hover:shadow-[0_0_15px_rgba(0,229,255,0.4)]"
           >
             SÍ, LA HA ADIVINADO (+1pt)
           </button>
           <button
             onClick={() => handleFinishRound(false)}
-            className="w-full py-4 border border-outline-variant text-outline hover:text-on-surface hover:border-on-surface transition-all uppercase tracking-wider active:scale-95"
+            className="w-full py-4 border border-outline-variant text-outline rounded-full hover:text-on-surface hover:border-on-surface transition-all uppercase tracking-wider active:scale-[0.98]"
           >
             NO, HA FALLADO
           </button>
@@ -174,7 +174,7 @@ export function ResultScreen() {
       ) : (
         <button
           onClick={handleNext}
-          className="w-full max-w-sm mt-12 py-4 border border-outline-variant text-on-surface font-label-pill text-label-pill rounded-lg hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all uppercase tracking-wider active:scale-95"
+          className="w-full max-w-sm mt-12 py-4 border border-outline-variant text-on-surface font-label-pill text-label-pill rounded-full hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all uppercase tracking-wider active:scale-[0.98]"
         >
           {isGameOverByNumber ? 'Ver Puntuaciones' : 'Continuar'}
         </button>

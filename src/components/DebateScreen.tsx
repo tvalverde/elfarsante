@@ -196,7 +196,7 @@ export function DebateScreen() {
         <div className="w-full max-w-3xl pointer-events-auto">
           <button
             onClick={handleAcusar}
-            className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-xl flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all active:scale-95 neon-glow-red uppercase tracking-wide shadow-[0_0_20px_rgba(255,42,95,0.4)]"
+            className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-full flex items-center justify-center gap-3 transition-all active:scale-[0.98] uppercase tracking-wide hover:shadow-[0_0_20px_rgba(255,42,95,0.4)] active:shadow-[0_0_30px_rgba(255,42,95,0.6)]"
           >
             <span>DETENER Y ACUSAR</span>
             <span

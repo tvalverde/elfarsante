@@ -447,7 +447,7 @@ export function HomeScreen() {
                     window.location.reload() // Force reload to clear all local states
                   }
                 }}
-                className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-lg"
+                className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-full"
               >
                 Borrar todos los datos
               </button>

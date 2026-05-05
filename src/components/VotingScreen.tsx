@@ -27,7 +27,7 @@ export function VotingScreen() {
           <button
             key={player.id}
             onClick={() => handleVote(player.id)}
-            className="w-full p-6 border-2 border-outline-variant rounded-xl text-center font-body-lg text-body-lg hover:border-primary-container hover:bg-primary-container/10 hover:text-primary-container hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all active:scale-95"
+            className="w-full p-6 border-2 border-outline-variant rounded-full text-center font-body-lg text-body-lg hover:border-primary-container hover:bg-primary-container/10 hover:text-primary-container hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all active:scale-[0.98]"
           >
             {player.name}
           </button>
