@@ -22,6 +22,7 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 
 ### 3. Architecture & UI
 
+- **Design System Compliance:** All generated code and UI components must strictly adhere to the technical specifications, tokens, and visual principles defined in `DESIGN.md`. If a user request conflicts with `DESIGN.md`, prioritize the documented design and alert the user.
 - **Phase-Based Navigation:** The app is a Single Page Application (SPA) driven by a `Phase` string in the global state.
 - **Visual Hierarchy (Sticky UX):** Maintain the "sticky bottom" pattern for primary action buttons (Play, Stop & Accuse, Next Round). Use a `fixed` container with a `bg-gradient-to-t` overlay and appropriate bottom padding (`pb-[120px]` or `pb-[180px]`) on the scrollable content to ensure no elements are hidden.
 - **Zero Native Alerts:** Never use `window.alert()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.

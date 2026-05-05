@@ -12,8 +12,8 @@ export function CyberInput({
   ...props
 }: CyberInputProps) {
   return (
-    <div className={`relative flex items-center ${className}`}>
-      <span className="material-symbols-outlined absolute left-0 ml-0 text-outline-variant pb-2">
+    <div className={`relative flex items-center group ${className}`}>
+      <span className="material-symbols-outlined absolute left-0 ml-0 text-outline-variant group-focus-within:text-primary-container transition-colors duration-200 pb-2">
         {icon}
       </span>
       <input
@@ -25,7 +25,7 @@ export function CyberInput({
         <button
           type="button"
           onClick={onRemove}
-          className="absolute right-0 text-outline-variant hover:text-error transition-colors pb-2"
+          className="absolute right-0 text-outline-variant group-focus-within:text-primary-container hover:text-error transition-colors pb-2"
         >
           <span className="material-symbols-outlined text-lg">close</span>
         </button>

@@ -46,7 +46,7 @@ export function DistributionScreen() {
       {/* Central Interactive Area */}
       <div
         ref={containerRef}
-        className={`w-full max-w-[260px] aspect-[3/4] bg-[#1A1A24] border border-primary-container rounded-xl flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 mt-8 mb-8 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
+        className={`w-full max-w-[260px] aspect-[3/4] bg-[#16161D] border border-primary-container rounded-lg flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 mt-8 mb-8 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
         onPointerDown={handleStartReveal}
         onPointerUp={handleEndReveal}
         onPointerLeave={handleEndReveal}
@@ -54,7 +54,7 @@ export function DistributionScreen() {
         onContextMenu={(e) => e.preventDefault()}
       >
         <div
-          className={`absolute inset-0 bg-primary-container opacity-0 transition-opacity duration-300 pointer-events-none rounded-xl ${isRevealed ? 'opacity-10' : 'group-active:opacity-10'}`}
+          className={`absolute inset-0 bg-primary-container opacity-0 transition-opacity duration-300 pointer-events-none rounded-lg ${isRevealed ? 'opacity-10' : 'group-active:opacity-10'}`}
         ></div>
 
         {isRevealed ? (
@@ -103,7 +103,7 @@ export function DistributionScreen() {
         <div className="w-full max-w-sm mx-auto pointer-events-auto">
           <button
             onClick={handleNext}
-            className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-lg hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"
+            className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-full hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"
           >
             {isLastPlayer ? 'Empezar Debate' : 'Siguiente Jugador'}
           </button>
