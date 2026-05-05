@@ -13,14 +13,14 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
 
 - **PWA (Progressive Web App):** Install the game on your mobile device for a full-screen, app-like immersive experience without browser bars.
 - **Local Multiplayer:** Optimized for "pass-and-play" sessions.
-- **Dynamic Categories:** Choose from 6 different categories (Professions, Food, Animals, Sports, Places, and Home Objects).
+- **Dynamic Categories:** Choose from a wide variety of dynamic categories that keep the game fresh and challenging.
 - **Advanced Game Settings:**
   - **Round Timer:** Customizable durations (3, 5, or 10 minutes).
   - **Impostor Count:** Play with 1 or 2 Impostors.
   - **Hardcore Mode:** Blind timer that only reveals itself in the last 30 seconds.
   - **Tournament Mode:** Set a score limit (5 or 10 points) to determine the ultimate winner.
   - **Time Penalties:** Lose time when an Innocent player is wrongly eliminated.
-- **Cyber-Noir Aesthetic:** Deep blacks (#0D0D12), electric cyans, and neon reds, featuring _Space Grotesk_ and _Plus Jakarta Sans_ typography.
+- **Cyber-Noir Aesthetic:** Deep blacks, electric cyans, and neon reds driven by a unified `DESIGN.md` specification for complete UI consistency.
 - **Professional UI Components:** Custom-built `NeonModal` and `CyberToast` notification systems replace native browser alerts for complete immersion.
 - **Automatic Versioning:** Every deployment automatically tracks and displays the application version in the UI.
 - **Game Persistence:** Automatic state saving in `localStorage` allows you to resume interrupted games.

@@ -27,11 +27,7 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Visual Hierarchy (Sticky UX):** Maintain the "sticky bottom" pattern for primary action buttons (Play, Stop & Accuse, Next Round). Use a `fixed` container with a `bg-gradient-to-t` overlay and appropriate bottom padding (`pb-[120px]` or `pb-[180px]`) on the scrollable content to ensure no elements are hidden.
 - **Zero Native Alerts:** Never use `window.alert()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.
 - **Screen Wake Lock:** Use the `useWakeLock` hook in `App.tsx` to prevent the screen from turning off during the `DEBATE` phase. This API is only available in HTTPS environments and requires user interaction before it can be activated.
-- **Cyber-Noir Design System:**
-  - Background: `#0D0D12` (Black).
-  - Primary: Cyan Electric (drop shadows, neon glows).
-  - Secondary: Crimson Red (errors, warnings).
-  - Fonts: _Space Grotesk_ for headings, _Plus Jakarta Sans_ for body text.
+- **Cyber-Noir Design System:** Adhere strictly to the `DESIGN.md` specification for colors, typography, and spacing to maintain a unified visual identity.
 - **Responsiveness:** Optimized primarily for mobile viewport (PWA/Mobile-First approach).
 
 ### 4. Deployment & Versioning
@@ -57,4 +53,6 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 ### 6. Code Quality & CI Hooks
 
 - **Hook Maintenance:** Before committing, ensure all modified file types are covered by the `lint-staged` configuration in `package.json` (e.g., if editing `.html` or `.yml`, they must be included). This ensures the git hook formats the code and prevents CI pipeline failures.
+- **Strict Formatting:** Maintain strictly formatted code using Prettier. When in doubt, run `npm run format` locally.
+  lways run `npm run format` and `npx eslint . --fix` before preparing a commit to proactively prevent CI failures and maintain style consistency.
 - **Strict Formatting:** Maintain strictly formatted code using Prettier. When in doubt, run `npm run format` locally.
