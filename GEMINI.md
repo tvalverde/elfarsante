@@ -43,7 +43,9 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 
 ### 4. Deployment & Versioning
 
-- **Strict Technical Language:** All code, comments, commit messages, and documentation MUST be in English. The Spanish localization is reserved ONLY for the game's UI and conversational interaction with the user.
+- **Strict Technical Language:** All code, comments, commit messages, and documentation MUST be in English. Spanish is reserved ONLY for the game's UI and conversational interaction.
+- **Conditional Deployment:** NEVER run `npm run deploy` if the changes only affect documentation, repository configuration (e.g., `.gitignore`), or internal meta-files. Deployment is strictly for functional game logic or UI updates.
+- **Meaningful Commits:** Commit messages MUST describe the actual changes or features implemented. Avoid referencing internal "phases" or "stages" (e.g., "Phase 1"). Always use the imperative mood (e.g., "feat: implement word history") and adhere to Conventional Commits.
 - **Semantic Versioning:** The project uses automatic semantic versioning (patch).
 - **Deployment Flow:** The `npm run deploy` command MUST execute `npm version patch` BEFORE `npm run build` to ensure the correct version is injected into the production bundle.
 - **PWA Integrity:** Maintain `public/manifest.json` and ensure PNG icons (`192x192` and `512x512`) are synced with the `favicon.svg` design for cross-browser mobile compatibility.
