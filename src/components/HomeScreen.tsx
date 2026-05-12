@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CyberInput } from './ui/CyberInput'
 import { PillTag } from './ui/PillTag'
 import { NeonButton } from './ui/NeonButton'
@@ -24,9 +24,12 @@ const AVAILABLE_CATEGORIES = [
 export function HomeScreen() {
   const { state, dispatch, syncStatus } = useGameState()
   const { showToast } = useToast()
-  const { syncCode, linkDevice, unlinkDevice, syncUid } = useAuth()
+  const { syncCode, linkDevice, unlinkDevice, syncUid, activeUid } = useAuth()
   const [syncInput, setSyncCodeInput] = useState('')
   const [isLinking, setIsLinking] = useState(false)
+  const [needsCloudSync, setNeedsCloudSync] = useState(false)
+  const lastUidRef = useRef(activeUid)
+
   const [players, setPlayers] = useState<string[]>(() => {
     const saved = localStorage.getItem('elfarsante_draft_players')
     if (saved) {
@@ -136,6 +139,37 @@ export function HomeScreen() {
   useEffect(() => {
     localStorage.setItem('elfarsante_draft_players', JSON.stringify(players))
   }, [players])
+
+  // Track if activeUid changes (linking/unlinking) to trigger a cloud sync of local drafts
+  useEffect(() => {
+    if (lastUidRef.current !== activeUid) {
+      lastUidRef.current = activeUid
+      setNeedsCloudSync(true)
+    }
+  }, [activeUid])
+
+  // Apply cloud data to local drafts once synced
+  useEffect(() => {
+    if (needsCloudSync && syncStatus === 'synced') {
+      /* eslint-disable react-hooks/set-state-in-effect */
+      if (state.players && state.players.length > 0) {
+        setPlayers(state.players.map((p) => p.name))
+      }
+      setSelectedCategories(state.config.selectedCategories)
+      setTimerDuration(state.config.timerDuration)
+      setFarsantesCount(state.config.farsantesCount)
+      setPenaltyOnFail(state.config.penaltyOnFail)
+      setScoreLimit(state.config.scoreLimit)
+      setBlindTimer(state.config.blindTimer)
+      /* eslint-enable react-hooks/set-state-in-effect */
+
+      // Clear draft storage so they don't override on next reload
+      localStorage.removeItem('elfarsante_draft_players')
+      localStorage.removeItem('elfarsante_draft_config')
+
+      setNeedsCloudSync(false)
+    }
+  }, [needsCloudSync, syncStatus, state])
 
   const handleAddPlayer = () => {
     setPlayers([...players, ''])
