@@ -228,16 +228,16 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onSnapshot(docRef, (snap) => {
       if (snap.exists() && !snap.metadata.hasPendingWrites) {
         const cloudState = snap.data() as GameState
-        // We only load if the current phase isn't a prompt (to avoid overwriting active local decisions)
-        if (state.currentPhase !== 'RESTORE_PROMPT') {
-          dispatch({ type: 'LOAD_STATE', payload: cloudState })
-        }
+        // If the cloud state is different from local, we load it.
+        // We only block this if we are in RESTORE_PROMPT but NOT if we just changed activeUid.
+        // Actually, when linking, we ALWAYS want the cloud state to prevail.
+        dispatch({ type: 'LOAD_STATE', payload: cloudState })
         setSyncStatus('synced')
       }
     })
 
     return unsubscribe
-  }, [activeUid, state.currentPhase])
+  }, [activeUid]) // Remove currentPhase from deps to prevent re-subscriptions on phase change
 
   // Network listener to handle offline status
   useEffect(() => {

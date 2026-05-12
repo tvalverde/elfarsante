@@ -54,14 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u)
-      if (u) {
-        fetchOrCreateSyncCode(u.uid)
-      }
       setLoading(false)
     })
 
     return unsubscribe
-  }, [fetchOrCreateSyncCode])
+  }, [])
+
+  // Sync syncCode whenever the user or syncUid changes
+  useEffect(() => {
+    const activeId = syncUid || user?.uid
+    if (activeId) {
+      setTimeout(() => fetchOrCreateSyncCode(activeId), 0)
+    }
+  }, [user, syncUid, fetchOrCreateSyncCode])
 
   const linkDevice = async (code: string) => {
     const docRef = doc(db, 'sync_codes', code.toUpperCase().trim())
@@ -71,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const targetUid = docSnap.data().uid
       localStorage.setItem('elfarsante_sync_uid', targetUid)
       setSyncUid(targetUid)
-      setSyncCode(code.toUpperCase().trim())
+      // fetchOrCreateSyncCode effect will update the syncCode state
       return true
     }
     return false
@@ -80,9 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const unlinkDevice = () => {
     localStorage.removeItem('elfarsante_sync_uid')
     setSyncUid(null)
-    if (user) {
-      fetchOrCreateSyncCode(user.uid)
-    }
   }
 
   return (
