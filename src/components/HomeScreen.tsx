@@ -57,6 +57,7 @@ export function HomeScreen() {
   })
   const [showSettings, setShowSettings] = useState(false)
   const [showHardResetModal, setShowHardResetModal] = useState(false)
+  const [showLinkModal, setShowLinkModal] = useState(false)
   const [timerDuration, setTimerDuration] = useState(() => {
     const saved = localStorage.getItem('elfarsante_draft_config')
     if (saved) {
@@ -163,6 +164,20 @@ export function HomeScreen() {
       } else {
         setSelectedCategories(newSelected)
       }
+    }
+  }
+
+  const handleLinkDevice = async () => {
+    if (!syncInput) return
+    setIsLinking(true)
+    const success = await linkDevice(syncInput)
+    setIsLinking(false)
+    if (success) {
+      showToast('¡Dispositivo vinculado con éxito!', 'success')
+      setSyncCodeInput('')
+      setShowLinkModal(false)
+    } else {
+      showToast('Código de vinculación inválido.', 'error')
     }
   }
 
@@ -552,18 +567,7 @@ export function HomeScreen() {
                         maxLength={7}
                       />
                       <button
-                        onClick={async () => {
-                          if (!syncInput) return
-                          setIsLinking(true)
-                          const success = await linkDevice(syncInput)
-                          setIsLinking(false)
-                          if (success) {
-                            showToast('¡Vínculo correcto!', 'success')
-                            setSyncCodeInput('')
-                          } else {
-                            showToast('Código inválido.', 'error')
-                          }
-                        }}
+                        onClick={() => setShowLinkModal(true)}
                         disabled={isLinking}
                         className="bg-primary-container text-background px-3 py-2 rounded text-[10px] font-black uppercase disabled:opacity-50 whitespace-nowrap"
                       >
@@ -610,6 +614,38 @@ export function HomeScreen() {
                 SÍ, BORRAR TODO
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={() => setShowHardResetModal(false)}>
+                CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
+
+        <NeonModal
+          isOpen={showLinkModal}
+          onClose={() => setShowLinkModal(false)}
+          title="¿VINCULAR DISPOSITIVO?"
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-on-surface-variant">
+              Al vincularte a otro código, se{' '}
+              <span className="text-primary-container font-bold">REEMPLAZARÁ</span> tu progreso
+              actual en este dispositivo.
+            </p>
+            <p className="text-on-surface-variant text-sm border-l-2 border-primary-container pl-3 py-1 bg-primary-container/5">
+              Asegúrate de tener apuntado tu código actual{' '}
+              <span className="text-white font-bold">{syncCode}</span> si quieres volver a él más
+              adelante.
+            </p>
+            <div className="flex flex-col gap-3">
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={handleLinkDevice}
+                disabled={isLinking}
+              >
+                {isLinking ? 'VINCULANDO...' : 'SÍ, VINCULAR'}
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={() => setShowLinkModal(false)}>
                 CANCELAR
               </NeonButton>
             </div>

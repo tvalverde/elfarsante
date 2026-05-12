@@ -4,6 +4,7 @@ import React, {
   useReducer,
   useEffect,
   useState,
+  useRef,
   type ReactNode,
 } from 'react'
 import { doc, onSnapshot, setDoc } from 'firebase/firestore'
@@ -217,6 +218,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState, initGameState)
   const { activeUid } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
+  const lastActiveUidRef = useRef<string | null>(activeUid)
 
   // Cloud Listener: Update local state when Cloud changes (from other devices)
   useEffect(() => {
@@ -259,6 +261,13 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
       // 2. Sync to Cloud (If authenticated)
       if (activeUid) {
+        // If the UID has changed (linking/unlinking), don't push local state immediately
+        // Wait for the onSnapshot listener to pull the remote state first
+        if (lastActiveUidRef.current !== activeUid) {
+          lastActiveUidRef.current = activeUid
+          return
+        }
+
         // Defer pending status to avoid cascading render warning in effect
         setTimeout(() => setSyncStatus((prev) => (prev !== 'pending' ? 'pending' : prev)), 0)
 

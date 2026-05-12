@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const targetUid = docSnap.data().uid
       localStorage.setItem('elfarsante_sync_uid', targetUid)
       setSyncUid(targetUid)
+      setSyncCode(code.toUpperCase().trim())
       return true
     }
     return false
@@ -79,6 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const unlinkDevice = () => {
     localStorage.removeItem('elfarsante_sync_uid')
     setSyncUid(null)
+    if (user) {
+      fetchOrCreateSyncCode(user.uid)
+    }
   }
 
   return (
