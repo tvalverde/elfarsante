@@ -4,6 +4,10 @@
 
 El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-play" mechanic on a single device.
 
+### Version 2.0 (Cloud Persistence)
+
+Starting from v2.0, the game features **Cloud Persistence** via Firebase. While the game remains local in its "pass-and-play" essence, player statistics (Infamy History), used words, and active game states are synchronized with the cloud using a **Sync Code** system. This allows players to maintain their progress across different devices seamlessly.
+
 ## Core Technical Mandates
 
 ### 1. State Persistence & Initialization
