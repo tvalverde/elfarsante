@@ -36,6 +36,7 @@ describe('gameReducer', () => {
       hasShownStartNotice: false,
     },
     usedWords: {},
+    updatedAt: 0,
   }
 
   it('should reset scores but keep players and stats on RESET_GAME', () => {

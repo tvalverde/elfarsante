@@ -58,6 +58,7 @@ export interface GameState {
   config: GameConfig
   round: RoundData
   usedWords: Record<string, string[]>
+  updatedAt: number
 }
 
 export type SyncStatus = 'synced' | 'pending' | 'error'
@@ -84,6 +85,7 @@ const initialState: GameState = {
     hasShownStartNotice: false,
   },
   usedWords: {},
+  updatedAt: 0,
 }
 
 type Action =
@@ -99,17 +101,25 @@ type Action =
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function gameReducer(state: GameState, action: Action): GameState {
+  // If loading from cloud, we accept it as is without updating the timestamp
+  if (action.type === 'LOAD_STATE') {
+    return action.payload
+  }
+
+  let newState: GameState
+
   switch (action.type) {
     case 'START_GAME':
-      return {
+      newState = {
         ...state,
         players: action.payload.players,
         config: action.payload.config,
         round: action.payload.round,
         currentPhase: 'REPARTO',
       }
+      break
     case 'NEXT_PHASE': {
-      const newState = { ...state, currentPhase: action.payload }
+      newState = { ...state, currentPhase: action.payload }
       // If we move to PUNTUACIONES, the round is over, save the word
       if (action.payload === 'PUNTUACIONES') {
         const cat = state.round.category
@@ -122,25 +132,28 @@ export function gameReducer(state: GameState, action: Action): GameState {
           }
         }
       }
-      return newState
+      break
     }
     case 'NEXT_PLAYER':
-      return {
+      newState = {
         ...state,
         round: { ...state.round, currentPlayerIndex: state.round.currentPlayerIndex + 1 },
       }
+      break
     case 'UPDATE_ROUND':
-      return {
+      newState = {
         ...state,
         round: { ...state.round, ...action.payload },
       }
+      break
     case 'UPDATE_PLAYERS':
-      return {
+      newState = {
         ...state,
         players: action.payload,
       }
+      break
     case 'RESET_GAME':
-      return {
+      newState = {
         ...state,
         currentPhase: 'HOME',
         players: state.players.map((p) => ({
@@ -150,6 +163,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
           role: null,
         })),
       }
+      break
     case 'HARD_RESET':
       if (typeof window !== 'undefined') {
         localStorage.removeItem('elfarsante_state')
@@ -158,19 +172,24 @@ export function gameReducer(state: GameState, action: Action): GameState {
         localStorage.removeItem('elfarsante_sync_uid')
       }
       return initialState
-    case 'LOAD_STATE':
-      return action.payload
     case 'CLEAR_CATEGORY_WORDS':
-      return {
+      newState = {
         ...state,
         usedWords: {
           ...state.usedWords,
           [action.payload]: [],
         },
       }
+      break
     default:
       return state
   }
+
+  // If state hasn't changed, don't update timestamp to avoid redundant triggers
+  if (newState === state) return state
+
+  // For any local action that changed the state, update the timestamp
+  return { ...newState, updatedAt: Date.now() }
 }
 
 const GameStateContext = createContext<
@@ -197,6 +216,7 @@ function initGameState(initial: GameState): GameState {
         const stateToReturn = {
           ...parsed,
           usedWords: parsed.usedWords || {},
+          updatedAt: parsed.updatedAt || 0,
         }
         if (
           parsed.currentPhase !== 'HOME' &&
@@ -220,6 +240,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
   const lastActiveUidRef = useRef<string | null>(activeUid)
   const stateRef = useRef<GameState>(state)
+  const lastPushedUpdateRef = useRef<number>(state.updatedAt)
 
   // Keep stateRef up to date for listeners
   useEffect(() => {
@@ -236,11 +257,13 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         const cloudState = snap.data() as GameState
         const currentState = stateRef.current
 
-        // Deep-ish comparison to avoid redundant loads and bounce-backs
-        const cloudStateStr = JSON.stringify(cloudState)
-        const localStateStr = JSON.stringify(currentState)
-
-        if (cloudStateStr !== localStateStr && currentState.currentPhase !== 'RESTORE_PROMPT') {
+        // Only accept if cloud is newer than local. Resolves race conditions and echo loops.
+        if (
+          cloudState.updatedAt > currentState.updatedAt &&
+          currentState.currentPhase !== 'RESTORE_PROMPT'
+        ) {
+          // Update our tracker so we don't echo this back
+          lastPushedUpdateRef.current = cloudState.updatedAt
           dispatch({ type: 'LOAD_STATE', payload: cloudState })
           setSyncStatus('synced')
         }
@@ -279,18 +302,24 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
           return
         }
 
-        // Defer pending status to avoid cascading render warning in effect
-        setTimeout(() => setSyncStatus((prev) => (prev !== 'pending' ? 'pending' : prev)), 0)
+        // Only push if this state version is newer than what we last pushed/received.
+        // Prevents the "Echo Loop" where Device B receives A's write and writes it back.
+        if (state.updatedAt > lastPushedUpdateRef.current) {
+          lastPushedUpdateRef.current = state.updatedAt
 
-        const docRef = doc(db, 'users', activeUid)
-        setDoc(docRef, state, { merge: true })
-          .then(() => {
-            setSyncStatus((prev) => (prev !== 'synced' ? 'synced' : prev))
-          })
-          .catch((err) => {
-            console.error('Failed to sync to Cloud:', err)
-            setSyncStatus('error')
-          })
+          // Defer pending status to avoid cascading render warning in effect
+          setTimeout(() => setSyncStatus((prev) => (prev !== 'pending' ? 'pending' : prev)), 0)
+
+          const docRef = doc(db, 'users', activeUid)
+          setDoc(docRef, state, { merge: true })
+            .then(() => {
+              setSyncStatus((prev) => (prev !== 'synced' ? 'synced' : prev))
+            })
+            .catch((err) => {
+              console.error('Failed to sync to Cloud:', err)
+              setSyncStatus('error')
+            })
+        }
       }
     }
   }, [state, activeUid])
