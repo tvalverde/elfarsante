@@ -173,7 +173,7 @@ export function HomeScreen() {
         window.matchMedia('(display-mode: fullscreen)').matches
 
       if (isMobile && !isStandalone && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {})
+        document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {})
       }
     } catch {
       // Silencioso
