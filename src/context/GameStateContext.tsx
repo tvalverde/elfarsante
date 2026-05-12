@@ -219,6 +219,12 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const { activeUid } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
   const lastActiveUidRef = useRef<string | null>(activeUid)
+  const stateRef = useRef<GameState>(state)
+
+  // Keep stateRef up to date for listeners
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   // Cloud Listener: Update local state when Cloud changes (from other devices)
   useEffect(() => {
@@ -228,11 +234,16 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onSnapshot(docRef, (snap) => {
       if (snap.exists() && !snap.metadata.hasPendingWrites) {
         const cloudState = snap.data() as GameState
-        // If the cloud state is different from local, we load it.
-        // We only block this if we are in RESTORE_PROMPT but NOT if we just changed activeUid.
-        // Actually, when linking, we ALWAYS want the cloud state to prevail.
-        dispatch({ type: 'LOAD_STATE', payload: cloudState })
-        setSyncStatus('synced')
+        const currentState = stateRef.current
+
+        // Deep-ish comparison to avoid redundant loads and bounce-backs
+        const cloudStateStr = JSON.stringify(cloudState)
+        const localStateStr = JSON.stringify(currentState)
+
+        if (cloudStateStr !== localStateStr && currentState.currentPhase !== 'RESTORE_PROMPT') {
+          dispatch({ type: 'LOAD_STATE', payload: cloudState })
+          setSyncStatus('synced')
+        }
       }
     })
 

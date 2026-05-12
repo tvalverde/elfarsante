@@ -20,7 +20,6 @@ export function DebateScreen() {
   const {
     play: playTimer,
     pause: pauseTimer,
-    isActive: isTimerActive,
     seconds: timerSeconds,
     formattedTime,
   } = useTimer(state.round.remainingTime, handleTimeUp, !shouldShowOverlay)
@@ -44,13 +43,6 @@ export function DebateScreen() {
       dispatch({ type: 'UPDATE_ROUND', payload: { hasShownStartNotice: true } })
     }
   }, [dispatch, state.round.hasShownStartNotice])
-
-  // Sync timer seconds with global state to persist on refresh
-  useEffect(() => {
-    if (isTimerActive && timerSeconds !== state.round.remainingTime) {
-      dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timerSeconds } })
-    }
-  }, [timerSeconds, isTimerActive, dispatch, state.round.remainingTime])
 
   const handleAcusar = () => {
     pauseTimer()
