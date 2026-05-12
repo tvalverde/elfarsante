@@ -1,6 +1,6 @@
 # El Farsante 🕵️‍♂️
 
-A stylish, Cyber-Noir themed hidden role game designed for local play on a single shared device. Built with React, TypeScript, and Tailwind CSS.
+A stylish, Cyber-Noir themed hidden role game designed for local play on a single shared device. Built with React, TypeScript, and Firebase.
 
 ## 🎮 About the Game
 
@@ -11,28 +11,25 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
 
 ## ✨ Key Features
 
-- **PWA (Progressive Web App):** Install the game on your mobile device for a full-screen, app-like immersive experience without browser bars.
-- **Local Multiplayer:** Optimized for "pass-and-play" sessions.
-- **Dynamic Categories:** Choose from a wide variety of dynamic categories that keep the game fresh and challenging.
-- **Advanced Game Settings:**
-  - **Round Timer:** Customizable durations (3, 5, or 10 minutes).
-  - **Impostor Count:** Play with 1 or 2 Impostors.
-  - **Hardcore Mode:** Blind timer that only reveals itself in the last 30 seconds.
-  - **Tournament Mode:** Set a score limit (5 or 10 points) to determine the ultimate winner.
-  - **Time Penalties:** Lose time when an Innocent player is wrongly eliminated.
-- **Cyber-Noir Aesthetic:** Deep blacks, electric cyans, and neon reds driven by a unified `DESIGN.md` specification for complete UI consistency.
-- **Professional UI Components:** Custom-built `NeonModal` and `CyberToast` notification systems replace native browser alerts for complete immersion.
-- **Automatic Versioning:** Every deployment automatically tracks and displays the application version in the UI.
-- **Game Persistence:** Automatic state saving in `localStorage` allows you to resume interrupted games.
+- **☁️ Cloud Persistence (v2.0):** Sync your player statistics (Infamy History), used words, and active game states across multiple devices using a unique **Sync Code**.
+- **📱 Immersive PWA:** Install the game on your mobile device for a full-screen experience. Includes smart detection to hide system bars and orientation locks for maximum focus.
+- **🔄 Dynamic "Random" Category:** A special mode that picks a different real category each round to keep everyone on their toes.
+- **🛑 Zero Native Alerts:** Custom-built `NeonModal` and `CyberToast` systems replace all browser dialogues for complete thematic immersion.
+- **⚖️ Weighted Fairness:** Advanced selection logic reduces consecutive Farsante repeats in small groups while maintaining total secrecy.
+- **🛠️ Advanced Game Settings:**
+  - **Round Timer:** Customizable durations.
+  - **Impostor Count:** Support for multiple impostors in larger groups.
+  - **Hardcore Mode:** Blind timer and time penalties for wrong eliminations.
+- **🎨 Cyber-Noir Aesthetic:** Deep blacks, electric cyans, and neon reds driven by a unified `DESIGN.md` specification.
 
 ## 🛠️ Technical Stack
 
 - **Framework:** [React 19](https://react.dev/)
-- **Bundler:** [Vite 8](https://vite.dev/)
+- **Database & Auth:** [Firebase](https://firebase.google.com/) (Firestore & Anonymous Auth)
+- **Bundler:** [Vite 8](https://vite.dev/) with manual chunk splitting for performance.
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **State Management:** React Context + `useReducer` with persistence middleware.
-- **PWA Support:** Custom Web Manifest and optimized icon sets for Android and iOS.
+- **State Management:** React Context + `useReducer` with real-time cloud synchronization.
 
 ## 🚀 Getting Started
 
@@ -56,7 +53,16 @@ A stylish, Cyber-Noir themed hidden role game designed for local play on a singl
    npm install
    ```
 
-3. Start the development server:
+3. Create a `.env.local` file with your Firebase configuration:
+
+   ```env
+   VITE_FIREBASE_API_KEY=your_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_domain
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   ...
+   ```
+
+4. Start the development server:
    ```bash
    npm run dev
    ```
@@ -69,7 +75,7 @@ To deploy the project to GitHub Pages:
    ```bash
    npm run deploy
    ```
-   _Note: This command automatically increments the version number (patch), creates a git commit/tag, builds the optimized assets, and publishes the `dist` folder to the `gh-pages` branch._
+   _Note: This command automatically increments the version number (patch), creates a git commit/tag, builds the optimized assets, and publishes to the `gh-pages` branch._
 
 ## 📜 License
 
