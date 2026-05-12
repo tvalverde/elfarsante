@@ -46,7 +46,7 @@ export function DistributionScreen() {
       {/* Central Interactive Area */}
       <div
         ref={containerRef}
-        className={`w-full max-w-[260px] aspect-[3/4] bg-[#16161D] border border-primary-container rounded-lg flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 mt-8 mb-8 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
+        className={`w-full max-w-xs aspect-[3/4] bg-[#16161D] border border-primary-container rounded-lg flex flex-col items-center justify-center p-4 gap-4 shadow-[0_0_15px_rgba(0,229,255,0.1)] relative overflow-hidden group select-none touch-none cursor-pointer transition-colors duration-300 mt-8 mb-8 ${isRevealed ? 'bg-primary-container/10 border-primary shadow-[0_0_30px_rgba(0,229,255,0.3)]' : ''}`}
         onPointerDown={handleStartReveal}
         onPointerUp={handleEndReveal}
         onPointerLeave={handleEndReveal}

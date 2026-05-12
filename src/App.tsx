@@ -21,6 +21,11 @@ function App() {
   // Keep screen awake globally
   useWakeLock(true)
 
+  // Scroll to top on phase change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [currentPhase])
+
   // Return to RESTORE_PROMPT when the app goes to background during an active game
   useEffect(() => {
     const handleVisibilityChange = () => {

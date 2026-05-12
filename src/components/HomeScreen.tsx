@@ -163,12 +163,16 @@ export function HomeScreen() {
   }
 
   const handleStartGame = () => {
-    // Intentar activar pantalla completa solo en dispositivos móviles
+    // Intentar activar pantalla completa solo en dispositivos móviles y si no está ya en modo PWA
     try {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
       )
-      if (isMobile && document.documentElement.requestFullscreen) {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches
+
+      if (isMobile && !isStandalone && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {})
       }
     } catch {
@@ -316,11 +320,16 @@ export function HomeScreen() {
                 value={player}
                 onChange={(e) => handlePlayerChange(index, e.target.value)}
                 onRemove={() => handleRemovePlayer(index)}
-                placeholder="Nombre del jugador"
+                placeholder="Nombre (máx. 15)"
+                maxLength={15}
               />
             ))}
           </div>
-          <NeonButton variant="ghost" onClick={handleAddPlayer} className="mt-4">
+          <NeonButton
+            variant="ghost"
+            onClick={handleAddPlayer}
+            className="mt-4 bg-surface-container/50 border border-outline-variant hover:bg-surface-container transition-colors"
+          >
             <span className="material-symbols-outlined text-sm">add</span>
             Añadir jugador
           </NeonButton>
@@ -350,6 +359,13 @@ export function HomeScreen() {
                 active={selectedCategories.includes(category)}
                 onClick={() => toggleCategory(category)}
                 icon={icons[category]}
+                className={
+                  category === 'aleatorio'
+                    ? selectedCategories.includes('aleatorio')
+                      ? '!bg-primary-container !text-background border-white'
+                      : 'border-white/50 text-white/70'
+                    : ''
+                }
               >
                 {CATEGORY_LABELS[category]}
               </PillTag>
