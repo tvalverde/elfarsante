@@ -6,6 +6,7 @@ import { NeonModal } from './ui/NeonModal'
 import { useGameState, type Player } from '../context/GameStateContext'
 import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 
 const AVAILABLE_CATEGORIES = [
   'aleatorio',
@@ -23,6 +24,9 @@ const AVAILABLE_CATEGORIES = [
 export function HomeScreen() {
   const { state, dispatch } = useGameState()
   const { showToast } = useToast()
+  const { syncCode, linkDevice, unlinkDevice, syncUid } = useAuth()
+  const [syncInput, setSyncCodeInput] = useState('')
+  const [isLinking, setIsLinking] = useState(false)
   const [players, setPlayers] = useState<string[]>(() => {
     const saved = localStorage.getItem('elfarsante_draft_players')
     if (saved) {
@@ -486,6 +490,72 @@ export function HomeScreen() {
                   Cronómetro Oculto (Modo Hardcore)
                 </span>
               </label>
+            </div>
+
+            {/* Cloud Sync Section */}
+            <div className="mt-4 pt-6 border-t border-outline-variant/30 flex flex-col gap-4">
+              <h3 className="font-semibold text-primary-container text-xs uppercase tracking-widest">
+                Sincronización en la Nube
+              </h3>
+
+              <div className="bg-background/40 p-4 rounded-lg border border-outline-variant flex flex-col gap-3">
+                <div className="flex justify-between items-center text-left">
+                  <span className="text-[10px] text-outline uppercase font-bold tracking-tighter leading-tight pr-4">
+                    Tu código de este dispositivo:
+                  </span>
+                  <span className="font-h1 text-lg text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] whitespace-nowrap">
+                    {syncCode || '...'}
+                  </span>
+                </div>
+
+                {syncUid ? (
+                  <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-outline-variant/20">
+                    <p className="text-[10px] text-primary-container font-bold uppercase">
+                      ✓ Dispositivo Vinculado
+                    </p>
+                    <button
+                      onClick={unlinkDevice}
+                      className="text-[10px] text-neon-red hover:underline text-left uppercase font-black"
+                    >
+                      Desvincular y usar perfil local
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] text-on-surface-variant leading-tight">
+                      Usa el código de otro dispositivo para sincronizar tus partidas e historial.
+                    </p>
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={syncInput}
+                        onChange={(e) => setSyncCodeInput(e.target.value.toUpperCase())}
+                        placeholder="CÓDIGO (ABC-123)"
+                        className="bg-surface-container-high border border-outline-variant text-white text-xs p-2 rounded flex-grow outline-none focus:border-primary-container min-w-0"
+                        maxLength={7}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!syncInput) return
+                          setIsLinking(true)
+                          const success = await linkDevice(syncInput)
+                          setIsLinking(false)
+                          if (success) {
+                            showToast('¡Vínculo correcto!', 'success')
+                            setSyncCodeInput('')
+                          } else {
+                            showToast('Código inválido.', 'error')
+                          }
+                        }}
+                        disabled={isLinking}
+                        className="bg-primary-container text-background px-3 py-2 rounded text-[10px] font-black uppercase disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {isLinking ? '...' : 'VINCULAR'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Danger Zone: Hard Reset */}

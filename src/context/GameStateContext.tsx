@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
+import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { db } from '../firebase'
+import { useAuth } from './AuthContext'
 
 export type Phase =
   | 'HOME'
@@ -97,7 +100,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       }
     case 'NEXT_PHASE': {
       const newState = { ...state, currentPhase: action.payload }
-      // Si pasamos a PUNTUACIONES, la ronda ha terminado, guardamos la palabra
+      // If we move to PUNTUACIONES, the round is over, save the word
       if (action.payload === 'PUNTUACIONES') {
         const cat = state.round.category
         const word = state.round.word
@@ -202,12 +205,41 @@ function initGameState(initial: GameState): GameState {
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState, initGameState)
+  const { activeUid } = useAuth()
 
+  // Cloud Listener: Update local state when Cloud changes (from other devices)
+  useEffect(() => {
+    if (!activeUid) return
+
+    const docRef = doc(db, 'users', activeUid)
+    const unsubscribe = onSnapshot(docRef, (snap) => {
+      if (snap.exists() && !snap.metadata.hasPendingWrites) {
+        const cloudState = snap.data() as GameState
+        // We only load if the current phase isn't a prompt (to avoid overwriting active local decisions)
+        if (state.currentPhase !== 'RESTORE_PROMPT') {
+          dispatch({ type: 'LOAD_STATE', payload: cloudState })
+        }
+      }
+    })
+
+    return unsubscribe
+  }, [activeUid, state.currentPhase])
+
+  // Local & Cloud Persister: Update LocalStorage and Cloud when state changes locally
   useEffect(() => {
     if (state.currentPhase !== 'RESTORE_PROMPT') {
+      // 1. Sync to LocalStorage (Immediate fallback)
       localStorage.setItem('elfarsante_state', JSON.stringify(state))
+
+      // 2. Sync to Cloud (If authenticated)
+      if (activeUid) {
+        const docRef = doc(db, 'users', activeUid)
+        setDoc(docRef, state, { merge: true }).catch((err) => {
+          console.error('Failed to sync to Cloud:', err)
+        })
+      }
     }
-  }, [state])
+  }, [state, activeUid])
 
   return (
     <GameStateContext.Provider value={{ state, dispatch }}>{children}</GameStateContext.Provider>
