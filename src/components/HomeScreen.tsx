@@ -22,7 +22,7 @@ const AVAILABLE_CATEGORIES = [
 ]
 
 export function HomeScreen() {
-  const { state, dispatch } = useGameState()
+  const { state, dispatch, syncStatus } = useGameState()
   const { showToast } = useToast()
   const { syncCode, linkDevice, unlinkDevice, syncUid } = useAuth()
   const [syncInput, setSyncCodeInput] = useState('')
@@ -503,9 +503,26 @@ export function HomeScreen() {
                   <span className="text-[10px] text-outline uppercase font-bold tracking-tighter leading-tight pr-4">
                     Tu código de este dispositivo:
                   </span>
-                  <span className="font-h1 text-lg text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] whitespace-nowrap">
-                    {syncCode || '...'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-h1 text-lg text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] whitespace-nowrap">
+                      {syncCode || '...'}
+                    </span>
+                    {syncStatus === 'synced' && (
+                      <span className="material-symbols-outlined text-primary-container text-lg animate-in fade-in zoom-in duration-300">
+                        cloud_done
+                      </span>
+                    )}
+                    {syncStatus === 'pending' && (
+                      <span className="material-symbols-outlined text-orange-400 text-lg animate-pulse">
+                        cloud_sync
+                      </span>
+                    )}
+                    {syncStatus === 'error' && (
+                      <span className="material-symbols-outlined text-neon-red text-lg animate-bounce">
+                        cloud_off
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {syncUid ? (

@@ -67,6 +67,7 @@ describe('DistributionScreen Layout (Sticky Bottom Regression)', () => {
     vi.mocked(useGameState).mockReturnValue({
       state: mockState,
       dispatch: vi.fn(),
+      syncStatus: 'synced',
     })
 
     const { container } = render(<DistributionScreen />)

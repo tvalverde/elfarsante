@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react'
 import { doc, onSnapshot, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
@@ -51,6 +58,8 @@ export interface GameState {
   round: RoundData
   usedWords: Record<string, string[]>
 }
+
+export type SyncStatus = 'synced' | 'pending' | 'error'
 
 const initialState: GameState = {
   players: [],
@@ -145,6 +154,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
         localStorage.removeItem('elfarsante_state')
         localStorage.removeItem('elfarsante_draft_players')
         localStorage.removeItem('elfarsante_draft_config')
+        localStorage.removeItem('elfarsante_sync_uid')
       }
       return initialState
     case 'LOAD_STATE':
@@ -163,7 +173,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
 }
 
 const GameStateContext = createContext<
-  { state: GameState; dispatch: React.Dispatch<Action> } | undefined
+  { state: GameState; dispatch: React.Dispatch<Action>; syncStatus: SyncStatus } | undefined
 >(undefined)
 
 function initGameState(initial: GameState): GameState {
@@ -206,6 +216,7 @@ function initGameState(initial: GameState): GameState {
 export function GameStateProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState, initGameState)
   const { activeUid } = useAuth()
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
 
   // Cloud Listener: Update local state when Cloud changes (from other devices)
   useEffect(() => {
@@ -219,11 +230,26 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         if (state.currentPhase !== 'RESTORE_PROMPT') {
           dispatch({ type: 'LOAD_STATE', payload: cloudState })
         }
+        setSyncStatus('synced')
       }
     })
 
     return unsubscribe
   }, [activeUid, state.currentPhase])
+
+  // Network listener to handle offline status
+  useEffect(() => {
+    const handleOnline = () => setSyncStatus('synced')
+    const handleOffline = () => setSyncStatus('pending')
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   // Local & Cloud Persister: Update LocalStorage and Cloud when state changes locally
   useEffect(() => {
@@ -233,16 +259,26 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
       // 2. Sync to Cloud (If authenticated)
       if (activeUid) {
+        // Defer pending status to avoid cascading render warning in effect
+        setTimeout(() => setSyncStatus((prev) => (prev !== 'pending' ? 'pending' : prev)), 0)
+
         const docRef = doc(db, 'users', activeUid)
-        setDoc(docRef, state, { merge: true }).catch((err) => {
-          console.error('Failed to sync to Cloud:', err)
-        })
+        setDoc(docRef, state, { merge: true })
+          .then(() => {
+            setSyncStatus((prev) => (prev !== 'synced' ? 'synced' : prev))
+          })
+          .catch((err) => {
+            console.error('Failed to sync to Cloud:', err)
+            setSyncStatus('error')
+          })
       }
     }
   }, [state, activeUid])
 
   return (
-    <GameStateContext.Provider value={{ state, dispatch }}>{children}</GameStateContext.Provider>
+    <GameStateContext.Provider value={{ state, dispatch, syncStatus }}>
+      {children}
+    </GameStateContext.Provider>
   )
 }
 
