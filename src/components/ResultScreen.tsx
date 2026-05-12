@@ -22,7 +22,7 @@ export function ResultScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isProcessing, isFarsante])
 
-  // Calcular si los farsantes ganan por número en esta pantalla
+  // Calculate if the farsantes win by numbers on this screen
   const aliveInnocentsCount = state.players.filter(
     (p) => p.id !== accused?.id && p.isAlive && p.role !== 'farsante',
   ).length
@@ -49,17 +49,17 @@ export function ResultScreen() {
           if (newPlayer.id === accused?.id) {
             newPlayer.isAlive = false
             newPlayer.score += 1
-            // Registrar eliminación injusta (Cara de culpable)
+            // Register unfair elimination (Guilty Face)
             newPlayer.wronglyEliminatedCount += 1
           }
           if (isGameOverByNumber && newPlayer.role === 'farsante') {
             newPlayer.score += 2
-            // Registrar victoria del farsante (Maestro del engaño)
+            // Register farsante win (Master of Deceit)
             newPlayer.farsanteWinsCount += 1
           }
         }
 
-        // Incrementar supervivencia solo para farsantes si ganan la partida (engañando a los inocentes)
+        // Increment survival count only for farsantes if they win the game (deceiving the innocents)
         if (isGameOverByNumber && newPlayer.role === 'farsante' && newPlayer.isAlive) {
           newPlayer.roundsSurvivedCount += 1
         }
@@ -129,6 +129,11 @@ export function ResultScreen() {
       ? '¡Victoria de los Farsantes! Han logrado superar en número a los inocentes.'
       : 'Se ha eliminado a un inocente. La tensión aumenta.'
 
+  const trueFarsantesNames = state.players
+    .filter((p) => state.round.farsanteIds.includes(p.id))
+    .map((p) => p.name)
+    .join(', ')
+
   return (
     <div className="flex flex-col items-center justify-center flex-grow p-container-padding max-w-2xl mx-auto text-center w-full relative z-10">
       <div className="mb-element-gap relative">
@@ -152,6 +157,15 @@ export function ResultScreen() {
       <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mt-4">
         {resultMessage}
       </p>
+
+      {!isFarsante && isGameOverByNumber && (
+        <p className="font-bold text-lg mt-6 animate-in fade-in zoom-in duration-500 text-on-surface">
+          {state.round.farsanteIds.length > 1
+            ? 'Los verdaderos farsantes eran: '
+            : 'El verdadero farsante era: '}
+          <span className="text-neon-red">{trueFarsantesNames}</span>
+        </p>
+      )}
 
       {isFarsante ? (
         <div className="w-full max-w-sm mt-12 flex flex-col gap-4">

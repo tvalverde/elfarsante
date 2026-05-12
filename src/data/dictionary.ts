@@ -3,6 +3,7 @@ export interface CategoryLists {
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
+  aleatorio: 'Aleatorio',
   profesiones: 'Profesiones',
   comida_bebida: 'Comida y Bebida',
   animales: 'Animales',

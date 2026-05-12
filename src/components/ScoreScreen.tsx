@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { useGameState } from '../context/GameStateContext'
 import { NeonButton } from './ui/NeonButton'
+import { NeonModal } from './ui/NeonModal'
 
 export function ScoreScreen() {
   const { state, dispatch } = useGameState()
+  const [showResetModal, setShowResetModal] = useState(false)
 
   const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score)
   const highestScore = sortedPlayers[0]?.score || 0
@@ -115,7 +118,7 @@ export function ScoreScreen() {
               {master ? `${master.value} victorias` : 'Sin datos'}
             </span>
           </div>
-          {/* Card 3: Cara de Culpable */}
+          {/* Card 3: Guilty Face */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">
               Cara de Culpable
@@ -127,7 +130,7 @@ export function ScoreScreen() {
               {scapegoat ? `${scapegoat.value} errores` : 'Sin datos'}
             </span>
           </div>
-          {/* Card 4: Inmortal */}
+          {/* Card 4: Immortal */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">
               El Inmortal
@@ -150,17 +153,42 @@ export function ScoreScreen() {
           </NeonButton>
           {!isTournamentOver && (
             <button
-              onClick={() => {
-                if (confirm('¿Estás seguro de que quieres reiniciar todas las puntuaciones?')) {
-                  dispatch({ type: 'RESET_GAME' })
-                }
-              }}
+              onClick={() => setShowResetModal(true)}
               className="text-outline-variant hover:text-error text-sm font-medium transition-colors py-2 uppercase tracking-tighter opacity-70 hover:opacity-100"
             >
               Reiniciar Marcadores
             </button>
           )}
         </div>
+
+        <NeonModal
+          isOpen={showResetModal}
+          onClose={() => setShowResetModal(false)}
+          title="¿REINICIAR?"
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-on-surface-variant">
+              ¿Estás seguro de que quieres{' '}
+              <span className="text-primary-container font-bold">REINICIAR</span> todas las
+              puntuaciones a cero?
+            </p>
+            <div className="flex flex-col gap-3">
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  dispatch({ type: 'RESET_GAME' })
+                  setShowResetModal(false)
+                }}
+              >
+                SÍ, REINICIAR
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={() => setShowResetModal(false)}>
+                CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
       </div>
     </div>
   )

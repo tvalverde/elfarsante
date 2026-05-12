@@ -63,11 +63,16 @@ export function DistributionScreen() {
             <p className="font-h1 text-[36px] font-black text-white drop-shadow-[0_0_15px_rgba(0,229,255,0.8)] text-center leading-tight">
               {currentPlayer.role === 'farsante' ? 'ERES EL FARSANTE' : state.round.word}
             </p>
-            <p className="font-body-md text-on-surface-variant text-center mt-2">
-              {currentPlayer.role === 'farsante'
-                ? 'Intenta pasar desapercibido.'
-                : `Categoría: ${state.round.category}`}
-            </p>
+            <div className="flex flex-col items-center gap-1 mt-2">
+              <p className="font-body-md text-on-surface-variant text-center">
+                Categoría: {state.round.category}
+              </p>
+              {currentPlayer.role === 'farsante' && (
+                <p className="font-body-sm text-secondary text-center opacity-80 italic">
+                  Intenta pasar desapercibido.
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4 animate-subtle-pulse">

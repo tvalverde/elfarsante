@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { CyberInput } from './ui/CyberInput'
 import { PillTag } from './ui/PillTag'
 import { NeonButton } from './ui/NeonButton'
+import { NeonModal } from './ui/NeonModal'
 import { useGameState, type Player } from '../context/GameStateContext'
 import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
 import { useToast } from '../context/ToastContext'
 
 const AVAILABLE_CATEGORIES = [
+  'aleatorio',
   'comida_bebida',
   'animales',
   'deportes',
@@ -31,7 +33,7 @@ export function HomeScreen() {
         // Silent fail for invalid JSON
       }
     }
-    // Si venimos de una partida anterior (incluso terminada) y no tenemos borrador, pre-cargamos los nombres
+    // Pre-load names if returning from a previous game (even finished) and no draft exists
     if (state.players && state.players.length > 0) {
       return state.players.map((p) => p.name)
     }
@@ -50,6 +52,7 @@ export function HomeScreen() {
     return state.config.selectedCategories
   })
   const [showSettings, setShowSettings] = useState(false)
+  const [showHardResetModal, setShowHardResetModal] = useState(false)
   const [timerDuration, setTimerDuration] = useState(() => {
     const saved = localStorage.getItem('elfarsante_draft_config')
     if (saved) {
@@ -144,16 +147,34 @@ export function HomeScreen() {
   }
 
   const toggleCategory = (category: string) => {
-    if (selectedCategories.includes(category)) {
-      if (selectedCategories.length > 1) {
-        setSelectedCategories(selectedCategories.filter((c) => c !== category))
-      }
+    if (category === 'aleatorio') {
+      setSelectedCategories(['aleatorio'])
     } else {
-      setSelectedCategories([...selectedCategories, category])
+      const newSelected = selectedCategories.includes(category)
+        ? selectedCategories.filter((c) => c !== category)
+        : [...selectedCategories.filter((c) => c !== 'aleatorio'), category]
+
+      if (newSelected.length === 0) {
+        setSelectedCategories(['aleatorio'])
+      } else {
+        setSelectedCategories(newSelected)
+      }
     }
   }
 
   const handleStartGame = () => {
+    // Intentar activar pantalla completa solo en dispositivos móviles
+    try {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      )
+      if (isMobile && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {})
+      }
+    } catch {
+      // Silencioso
+    }
+
     const validPlayers = players.filter((p) => p.trim() !== '')
     if (validPlayers.length < 3) {
       showToast('Se necesitan al menos 3 jugadores.', 'error')
@@ -217,20 +238,32 @@ export function HomeScreen() {
     })
 
     // Select random word based on selected categories
-    const possibleWords: { word: string; cat: string }[] = []
-    selectedCategories.forEach((cat) => {
-      const words = WORD_LISTS[cat]
-      if (words) {
-        words.forEach((w) => possibleWords.push({ word: w, cat }))
-      }
-    })
+    let chosenCat: string
+    if (selectedCategories.includes('aleatorio')) {
+      const realCategories = AVAILABLE_CATEGORIES.filter((c) => c !== 'aleatorio')
+      chosenCat = realCategories[Math.floor(Math.random() * realCategories.length)]
+    } else {
+      chosenCat = selectedCategories[Math.floor(Math.random() * selectedCategories.length)]
+    }
 
-    let chosenWord = 'León'
-    let chosenCat = 'animales'
-    if (possibleWords.length > 0) {
-      const randomChoice = possibleWords[Math.floor(Math.random() * possibleWords.length)]
-      chosenWord = randomChoice.word
-      chosenCat = randomChoice.cat
+    const fullWordList = WORD_LISTS[chosenCat] || []
+    const usedWords = state.usedWords[chosenCat] || []
+    let filteredWords = fullWordList.filter((w) => !usedWords.includes(w))
+
+    if (filteredWords.length === 0 && fullWordList.length > 0) {
+      // Agotadas: Resetear historial de esa categoría y avisar
+      dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: chosenCat })
+      showToast(`Palabras de ${CATEGORY_LABELS[chosenCat]} agotadas. Empezando de nuevo.`, 'info')
+      filteredWords = fullWordList
+    }
+
+    let chosenWord: string
+    if (filteredWords.length > 0) {
+      chosenWord = filteredWords[Math.floor(Math.random() * filteredWords.length)]
+    } else {
+      // Fallback extremo si por algún motivo la lista está vacía
+      chosenCat = 'animales'
+      chosenWord = 'León'
     }
 
     const startingPlayerId = gamePlayers[Math.floor(Math.random() * gamePlayers.length)].id
@@ -249,7 +282,7 @@ export function HomeScreen() {
         },
         round: {
           word: chosenWord,
-          category: CATEGORY_LABELS[chosenCat] || chosenCat,
+          category: chosenCat,
           farsanteIds: gamePlayers.filter((p) => p.role === 'farsante').map((p) => p.id),
           remainingTime: timerDuration,
           accusedId: null,
@@ -300,6 +333,7 @@ export function HomeScreen() {
         <div className="flex flex-wrap gap-3">
           {AVAILABLE_CATEGORIES.map((category) => {
             const icons: Record<string, string> = {
+              aleatorio: 'shuffle',
               profesiones: 'work',
               comida_bebida: 'restaurant',
               animales: 'pets',
@@ -437,16 +471,7 @@ export function HomeScreen() {
             {/* Danger Zone: Hard Reset */}
             <div className="mt-4 pt-4 border-t border-outline-variant/30">
               <button
-                onClick={() => {
-                  if (
-                    confirm(
-                      '¿ESTÁS SEGURO? Se borrarán todos los jugadores, marcadores e HISTORIAL DE INFAMIA permanentemente.',
-                    )
-                  ) {
-                    dispatch({ type: 'HARD_RESET' })
-                    window.location.reload() // Force reload to clear all local states
-                  }
-                }}
+                onClick={() => setShowHardResetModal(true)}
                 className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-full"
               >
                 Borrar todos los datos
@@ -454,6 +479,35 @@ export function HomeScreen() {
             </div>
           </div>
         )}
+
+        <NeonModal
+          isOpen={showHardResetModal}
+          onClose={() => setShowHardResetModal(false)}
+          title="¿BORRAR TODO?"
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-on-surface-variant">
+              Esta acción es <span className="text-neon-red font-bold">IRREVERSIBLE</span>. Se
+              borrarán todos los jugadores, puntuaciones e historial de palabras.
+            </p>
+            <div className="flex flex-col gap-3">
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  dispatch({ type: 'HARD_RESET' })
+                  window.location.reload()
+                }}
+                className="!bg-neon-red/20 !border-neon-red !text-neon-red hover:!bg-neon-red hover:!text-white"
+              >
+                SÍ, BORRAR TODO
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={() => setShowHardResetModal(false)}>
+                CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
       </div>
 
       {/* Fixed bottom full-width button */}

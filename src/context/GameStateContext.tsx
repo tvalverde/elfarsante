@@ -46,6 +46,7 @@ export interface GameState {
   currentPhase: Phase
   config: GameConfig
   round: RoundData
+  usedWords: Record<string, string[]>
 }
 
 const initialState: GameState = {
@@ -69,6 +70,7 @@ const initialState: GameState = {
     startingPlayerId: null,
     hasShownStartNotice: false,
   },
+  usedWords: {},
 }
 
 type Action =
@@ -80,6 +82,7 @@ type Action =
   | { type: 'RESET_GAME' }
   | { type: 'HARD_RESET' }
   | { type: 'LOAD_STATE'; payload: GameState }
+  | { type: 'CLEAR_CATEGORY_WORDS'; payload: string }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function gameReducer(state: GameState, action: Action): GameState {
@@ -92,8 +95,22 @@ export function gameReducer(state: GameState, action: Action): GameState {
         round: action.payload.round,
         currentPhase: 'REPARTO',
       }
-    case 'NEXT_PHASE':
-      return { ...state, currentPhase: action.payload }
+    case 'NEXT_PHASE': {
+      const newState = { ...state, currentPhase: action.payload }
+      // Si pasamos a PUNTUACIONES, la ronda ha terminado, guardamos la palabra
+      if (action.payload === 'PUNTUACIONES') {
+        const cat = state.round.category
+        const word = state.round.word
+        const currentUsed = state.usedWords[cat] || []
+        if (!currentUsed.includes(word)) {
+          newState.usedWords = {
+            ...state.usedWords,
+            [cat]: [...currentUsed, word],
+          }
+        }
+      }
+      return newState
+    }
     case 'NEXT_PLAYER':
       return {
         ...state,
@@ -129,6 +146,14 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return initialState
     case 'LOAD_STATE':
       return action.payload
+    case 'CLEAR_CATEGORY_WORDS':
+      return {
+        ...state,
+        usedWords: {
+          ...state.usedWords,
+          [action.payload]: [],
+        },
+      }
     default:
       return state
   }
@@ -139,13 +164,13 @@ const GameStateContext = createContext<
 >(undefined)
 
 function initGameState(initial: GameState): GameState {
-  if (typeof window === 'undefined') return initial // Para SSR/tests si aplica
+  if (typeof window === 'undefined') return initial // For SSR/tests if applicable
   try {
     const savedState = localStorage.getItem('elfarsante_state')
     if (savedState) {
       const parsed = JSON.parse(savedState)
       if (parsed && parsed.currentPhase) {
-        // Asegurar que todos los jugadores tengan los nuevos campos de estadísticas si vienen de una versión anterior
+        // Ensure all players have the new stats fields if they come from an older version
         if (parsed.players) {
           parsed.players = parsed.players.map((p: Player) => ({
             ...p,
@@ -155,21 +180,18 @@ function initGameState(initial: GameState): GameState {
             farsanteWinsCount: p.farsanteWinsCount ?? 0,
           }))
         }
+        const stateToReturn = {
+          ...parsed,
+          usedWords: parsed.usedWords || {},
+        }
         if (
           parsed.currentPhase !== 'HOME' &&
           parsed.currentPhase !== 'PUNTUACIONES' &&
           parsed.currentPhase !== 'RESTORE_PROMPT'
         ) {
-          return { ...parsed, currentPhase: 'RESTORE_PROMPT' }
-        } else if (parsed.currentPhase === 'PUNTUACIONES') {
-          return parsed
-        } else {
-          return {
-            ...initial,
-            players: parsed.players || [],
-            config: parsed.config || initial.config,
-          }
+          stateToReturn.currentPhase = 'RESTORE_PROMPT'
         }
+        return stateToReturn
       }
     }
   } catch (e) {

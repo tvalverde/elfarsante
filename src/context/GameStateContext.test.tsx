@@ -35,6 +35,7 @@ describe('gameReducer', () => {
       startingPlayerId: null,
       hasShownStartNotice: false,
     },
+    usedWords: {},
   }
 
   it('should reset scores but keep players and stats on RESET_GAME', () => {
@@ -62,5 +63,23 @@ describe('gameReducer', () => {
     const newState = gameReducer(mockState, action)
 
     expect(newState.players[0].score).toBe(20)
+  })
+
+  it('should save word to history when moving to PUNTUACIONES', () => {
+    const action = { type: 'NEXT_PHASE', payload: 'PUNTUACIONES' } as const
+    const newState = gameReducer(mockState, action)
+
+    expect(newState.usedWords['animales']).toContain('Gato')
+  })
+
+  it('should clear category words on CLEAR_CATEGORY_WORDS', () => {
+    const stateWithWords: GameState = {
+      ...mockState,
+      usedWords: { animales: ['Gato', 'Perro'] },
+    }
+    const action = { type: 'CLEAR_CATEGORY_WORDS', payload: 'animales' } as const
+    const newState = gameReducer(stateWithWords, action)
+
+    expect(newState.usedWords['animales']).toEqual([])
   })
 })
