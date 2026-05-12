@@ -23,16 +23,20 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Weighted Fairness (3 Players):** In games with exactly 3 players, use a weighted system (tickets) to select the Farsante. The previous Farsante gets 1 ticket, while others get 4 tickets. This reduces consecutive repeats to ~11% without making them impossible. For games with > 3 players, use pure randomness.
 - **Score Integrity:** Do not reset scores to zero when moving from `PUNTUACIONES` to `HOME` and starting a new round.
 - **Identity Revelation:** In the `RESULTADO` phase, the identity of the Farsantes must only be revealed to all players if the game ends (e.g., Farsantes win by numbers).
+- **Player Limits:** Player names must be limited to **15 characters**. Use `maxLength={15}` and placeholders like `"Nombre (máx. 15)"`.
 
 ### 3. Architecture & UI
 
 - **Design System Compliance:** All generated code and UI components must strictly adhere to the technical specifications, tokens, and visual principles defined in `DESIGN.md`. If a user request conflicts with `DESIGN.md`, prioritize the documented design and alert the user.
 - **Phase-Based Navigation:** The app is a Single Page Application (SPA) driven by a `Phase` string in the global state.
+- **Auto-Scroll Navigation:** Always perform a `window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })` when `currentPhase` changes (e.g., in `App.tsx`).
 - **Visual Hierarchy (Sticky UX):** Maintain the "sticky bottom" pattern for primary action buttons (Play, Stop & Accuse, Next Round). Use a `fixed` container with a `bg-gradient-to-t` overlay and appropriate bottom padding (`pb-[120px]` or `pb-[180px]`) on the scrollable content to ensure no elements are hidden.
 - **Zero Native Alerts:** Never use `window.alert()` or `confirm()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.
 - **Immersive Mobile UX:**
   - The `manifest.json` must use `"display": "fullscreen"`.
-  - When the user taps "¡JUGAR!", trigger `document.documentElement.requestFullscreen()` specifically for mobile devices (via UA detection) to hide system navigation bars.
+  - When the user taps "¡JUGAR!", trigger `document.documentElement.requestFullscreen()` specifically for mobile devices (via UA detection) **ONLY if not already in standalone mode** (PWA).
+- **Category UI:** The "Aleatorio" category must be visually distinct (e.g., solid background vs. outline) to mark its special status.
+- **Component Styling:** Interactive elements like "Añadir jugador" must have visible borders and backgrounds to look like clickable buttons. Distribution cards should use `max-w-xs` to maximize readability.
 - **Screen Wake Lock:** Use the `useWakeLock` hook in `App.tsx` to prevent the screen from turning off during the `DEBATE` phase. This API is only available in HTTPS environments and requires user interaction before it can be activated.
 - **Cyber-Noir Design System:** Adhere strictly to the `DESIGN.md` specification for colors, typography, and spacing to maintain a unified visual identity.
 - **Responsiveness:** Optimized primarily for mobile viewport (PWA/Mobile-First approach).
