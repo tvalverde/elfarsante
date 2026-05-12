@@ -13,6 +13,16 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('firebase')) return 'vendor-firebase'
+          if (id.includes('react')) return 'vendor-react'
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
