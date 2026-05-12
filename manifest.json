@@ -3,7 +3,7 @@
   "short_name": "El Farsante",
   "description": "Un trepidante juego local de deducción social.",
   "start_url": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#0a0a0a",
   "theme_color": "#00E5FF",
   "icons": [
