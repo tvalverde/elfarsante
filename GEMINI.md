@@ -33,8 +33,9 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Visual Hierarchy (Sticky UX):** Maintain the "sticky bottom" pattern for primary action buttons (Play, Stop & Accuse, Next Round). Use a `fixed` container with a `bg-gradient-to-t` overlay and appropriate bottom padding (`pb-[120px]` or `pb-[180px]`) on the scrollable content to ensure no elements are hidden.
 - **Zero Native Alerts:** Never use `window.alert()` or `confirm()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.
 - **Immersive Mobile UX:**
-  - The `manifest.json` must use `"display": "fullscreen"`.
-  - When the user taps "¡JUGAR!", trigger `document.documentElement.requestFullscreen()` specifically for mobile devices (via UA detection) **ONLY if not already in standalone mode** (PWA).
+  - The `manifest.json` must use `"display": "standalone"`.
+  - When the user taps "¡JUGAR!", trigger `document.documentElement.requestFullscreen({ navigationUI: 'hide' })` for mobile devices (via UA detection). This should be done regardless of standalone mode to handle stubborn devices like Xiaomi/MIUI.
+  - Include vendor-specific meta tags (`x5-fullscreen`, `full-screen`, `browsermode`) in `index.html` for maximum compatibility.
 - **Category UI:** The "Aleatorio" category must be visually distinct (e.g., solid background vs. outline) to mark its special status.
 - **Component Styling:** Interactive elements like "Añadir jugador" must have visible borders and backgrounds to look like clickable buttons. Distribution cards should use `max-w-xs` to maximize readability.
 - **Screen Wake Lock:** Use the `useWakeLock` hook in `App.tsx` to prevent the screen from turning off during the `DEBATE` phase. This API is only available in HTTPS environments and requires user interaction before it can be activated.

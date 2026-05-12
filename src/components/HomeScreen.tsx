@@ -163,22 +163,26 @@ export function HomeScreen() {
   }
 
   const handleStartGame = () => {
-    // Intentar activar pantalla completa solo en dispositivos móviles y si no está ya en modo PWA
+    // Try to activate fullscreen only on mobile devices
     try {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
       )
-      const isStandalone =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches
-
-      if (isMobile && !isStandalone && document.documentElement.requestFullscreen) {
+      if (isMobile && document.documentElement.requestFullscreen) {
+        // We request it regardless of standalone mode as some devices (Xiaomi) ignore manifest settings
         document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {})
+
+        // Hint: try to lock orientation, which sometimes forces the OS to hide system bars
+        if (screen.orientation && 'lock' in screen.orientation) {
+          const lockOrientation = screen.orientation.lock.bind(screen.orientation)
+          if (lockOrientation) {
+            lockOrientation('portrait' as OrientationLockType).catch(() => {})
+          }
+        }
       }
     } catch {
-      // Silencioso
+      // Silent fallback
     }
-
     const validPlayers = players.filter((p) => p.trim() !== '')
     if (validPlayers.length < 3) {
       showToast('Se necesitan al menos 3 jugadores.', 'error')
