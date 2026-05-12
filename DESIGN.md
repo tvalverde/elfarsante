@@ -149,3 +149,35 @@ Cards use the "Very Dark Grey" surface. They should be minimally decorated, rely
 ### Status Indicators
 
 Small, circular dots or thin lines that pulse slightly when a player is "Thinking" or "Acting," reinforcing the live, high-stakes nature of the game.
+
+## Do's and Don'ts (Architecture & Business Logic)
+
+### Do: State Persistence & Sync
+
+- **Do use Cloud Persistence:** The game features Cloud Persistence via Firebase. Player statistics, used words, and active game states are synchronized with the cloud using a **Sync Code** system.
+- **Do use Lazy Initialization:** Always initialize `useReducer` or `useState` that depends on `localStorage` using a lazy initializer function to avoid hydration mismatches.
+- **Do maintain Persistent Word History:** Keep a history of used words in `state.usedWords`, mapped by category. Trigger `CLEAR_CATEGORY_WORDS` when a list is exhausted. Add words to history only when transitioning to the `PUNTUACIONES` phase.
+
+### Do: Player & Role Management
+
+- **Do use Stable IDs:** Attempt to preserve player IDs and Scores from the previous round by matching names in the state.
+- **Do use Weighted Fairness (3 Players):** Use a weighted system (1 ticket for previous Farsante, 4 for others) to reduce consecutive repeats to ~11%. Use pure randomness for > 3 players.
+- **Do respect Score Integrity:** Do not reset scores to zero when moving from `PUNTUACIONES` to `HOME` and starting a new round.
+- **Do delay Identity Revelation:** In the `RESULTADO` phase, only reveal the identity of the Farsantes if the game ends (e.g., Farsantes win by numbers).
+- **Do limit Player Names:** Player names must be limited to **15 characters**. Use `maxLength={15}`.
+
+### Do: UX and Hardware Integration
+
+- **Do use Phase-Based Navigation:** The app is a SPA driven by a `Phase` string in the global state. Always perform a `window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })` when `currentPhase` changes.
+- **Do maintain Sticky UX:** Use the "sticky bottom" pattern for primary action buttons with `fixed` positioning and `pb-[120px]` or `pb-[180px]` on scrollable content.
+- **Do enforce Immersive Mobile UX:** Trigger `document.documentElement.requestFullscreen({ navigationUI: 'hide' })` for mobile devices regardless of standalone mode. Use vendor-specific meta tags (`x5-fullscreen`, `full-screen`, \`browsermode\`).
+- **Do utilize Wake Lock:** Use the \`useWakeLock\` hook to prevent the screen from turning off during the \`DEBATE\` phase.
+- **Do provide Audio Fallbacks:** Sound playback requires prior user interaction. Use the Web Audio API as a synthetic fallback if MP3 files are missing.
+- **Do distinguish 'Aleatorio':** The "Aleatorio" category must be visually distinct (e.g., solid background vs. outline).
+
+### Don't: Common Pitfalls
+
+- **Don't use hardcoded Role IDs:** The \`round.farsanteIds\` array must always be derived from the actual IDs assigned to players.
+- **Don't reset State on Mount:** Never set initial state in \`useEffect\` if a save-to-storage \`useEffect\` is also active.
+- **Don't orphan Categories:** Ensure new categories in \`dictionary.ts\` are registered in \`AVAILABLE_CATEGORIES\` in \`HomeScreen.tsx\`.
+- **Don't allow duplicate names:** Always validate name uniqueness before starting a game.
