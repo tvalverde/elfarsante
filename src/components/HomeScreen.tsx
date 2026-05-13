@@ -197,9 +197,27 @@ export function HomeScreen() {
   }
 
   const handleStartGame = (forceReset = false) => {
-    // Intercept if tournament mode and there are existing scores
-    const hasExistingScores = state.players.some((p) => p.score > 0)
-    if (scoreLimit !== null && hasExistingScores && !forceReset) {
+    const validPlayers = players.filter((p) => p.trim() !== '')
+
+    // Evaluate if we are starting a NEW tournament and need to warn the user
+    const currentScores = validPlayers.map((name) => {
+      const existing = state.players.find((p) => p.name === name)
+      return existing ? existing.score : 0
+    })
+    const hasExistingScores = currentScores.some((score) => score > 0)
+    const highestScore = Math.max(0, ...currentScores)
+
+    const isSwitchingFromFree = state.config.scoreLimit === null
+    const isTournamentOver =
+      state.config.scoreLimit !== null && highestScore >= state.config.scoreLimit
+
+    // Intercept if tournament mode and there are existing scores that shouldn't carry over
+    if (
+      scoreLimit !== null &&
+      hasExistingScores &&
+      (isSwitchingFromFree || isTournamentOver) &&
+      !forceReset
+    ) {
       setShowTournamentWarning(true)
       return
     }
@@ -224,7 +242,7 @@ export function HomeScreen() {
     } catch {
       // Silent fallback
     }
-    const validPlayers = players.filter((p) => p.trim() !== '')
+
     if (validPlayers.length < 3) {
       showToast('Se necesitan al menos 3 jugadores.', 'error')
       return
@@ -273,7 +291,8 @@ export function HomeScreen() {
     const gamePlayers: Player[] = validPlayers.map((name, index) => {
       const existingPlayer = state.players.find((p) => p.name === name)
       const isFarsante = farsanteIndices.includes(index)
-      const shouldResetScore = forceReset || scoreLimit !== null
+      // Only reset scores if explicitly requested via the warning modal (forceReset)
+      const shouldResetScore = forceReset
       return {
         id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
         name,
