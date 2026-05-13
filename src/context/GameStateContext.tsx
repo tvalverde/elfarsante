@@ -239,6 +239,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const { activeUid } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
   const lastActiveUidRef = useRef<string | null>(activeUid)
+  const isFirstSnapshotAfterLinkRef = useRef<boolean>(false)
   const stateRef = useRef<GameState>(state)
   const lastPushedUpdateRef = useRef<number>(state.updatedAt)
 
@@ -246,6 +247,14 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     stateRef.current = state
   }, [state])
+
+  // Detect link/unlink events to force next snapshot adoption
+  useEffect(() => {
+    if (lastActiveUidRef.current !== activeUid) {
+      lastActiveUidRef.current = activeUid
+      isFirstSnapshotAfterLinkRef.current = true
+    }
+  }, [activeUid])
 
   // Cloud Listener: Update local state when Cloud changes (from other devices)
   useEffect(() => {
@@ -257,11 +266,13 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         const cloudState = snap.data() as GameState
         const currentState = stateRef.current
 
-        // Only accept if cloud is newer than local. Resolves race conditions and echo loops.
+        // Accept if cloud is newer OR if we just linked/unlinked (force adopt)
         if (
-          cloudState.updatedAt > currentState.updatedAt &&
-          currentState.currentPhase !== 'RESTORE_PROMPT'
+          isFirstSnapshotAfterLinkRef.current ||
+          (cloudState.updatedAt > currentState.updatedAt &&
+            currentState.currentPhase !== 'RESTORE_PROMPT')
         ) {
+          isFirstSnapshotAfterLinkRef.current = false
           // Update our tracker so we don't echo this back
           lastPushedUpdateRef.current = cloudState.updatedAt
           dispatch({ type: 'LOAD_STATE', payload: cloudState })

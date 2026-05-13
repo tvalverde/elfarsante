@@ -21,10 +21,10 @@ const AVAILABLE_CATEGORIES = [
 ]
 
 export function HomeScreen() {
-  const { state, dispatch, syncStatus } = useGameState()
+  const { state, dispatch } = useGameState()
   const { showToast } = useToast()
   const { activeUid } = useAuth()
-  const [needsCloudSync, setNeedsCloudSync] = useState(false)
+  const lastStateUpdateRef = useRef(state.updatedAt)
   const lastUidRef = useRef(activeUid)
 
   const [players, setPlayers] = useState<string[]>(() => {
@@ -135,36 +135,34 @@ export function HomeScreen() {
     localStorage.setItem('elfarsante_draft_players', JSON.stringify(players))
   }, [players])
 
-  // Track if activeUid changes (linking/unlinking) to trigger a cloud sync of local drafts
+  // Detect when the state has been updated from the cloud (typically after a link/unlink or external change)
+  // to refresh the local draft fields.
   useEffect(() => {
-    if (lastUidRef.current !== activeUid) {
+    const isNewCloudState = state.updatedAt > lastStateUpdateRef.current
+    const isFirstLoadAfterLink = lastUidRef.current !== activeUid
+
+    if (isNewCloudState || isFirstLoadAfterLink) {
+      lastStateUpdateRef.current = state.updatedAt
       lastUidRef.current = activeUid
-      setNeedsCloudSync(true)
-    }
-  }, [activeUid])
 
-  // Apply cloud data to local drafts once synced
-  useEffect(() => {
-    if (needsCloudSync && syncStatus === 'synced') {
-      /* eslint-disable react-hooks/set-state-in-effect */
+      // Only override if the new state has actual player data to avoid wiping current draft with a fresh state
       if (state.players && state.players.length > 0) {
+        /* eslint-disable react-hooks/set-state-in-effect */
         setPlayers(state.players.map((p) => p.name))
+        setSelectedCategories(state.config.selectedCategories)
+        setTimerDuration(state.config.timerDuration)
+        setFarsantesCount(state.config.farsantesCount)
+        setPenaltyOnFail(state.config.penaltyOnFail)
+        setScoreLimit(state.config.scoreLimit)
+        setBlindTimer(state.config.blindTimer)
+        /* eslint-enable react-hooks/set-state-in-effect */
+
+        // Clear local storage drafts so they don't override on next cold boot if they were stale
+        localStorage.removeItem('elfarsante_draft_players')
+        localStorage.removeItem('elfarsante_draft_config')
       }
-      setSelectedCategories(state.config.selectedCategories)
-      setTimerDuration(state.config.timerDuration)
-      setFarsantesCount(state.config.farsantesCount)
-      setPenaltyOnFail(state.config.penaltyOnFail)
-      setScoreLimit(state.config.scoreLimit)
-      setBlindTimer(state.config.blindTimer)
-      /* eslint-enable react-hooks/set-state-in-effect */
-
-      // Clear draft storage so they don't override on next reload
-      localStorage.removeItem('elfarsante_draft_players')
-      localStorage.removeItem('elfarsante_draft_config')
-
-      setNeedsCloudSync(false)
     }
-  }, [needsCloudSync, syncStatus, state])
+  }, [state, activeUid])
 
   const handleAddPlayer = () => {
     setPlayers([...players, ''])
