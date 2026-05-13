@@ -207,17 +207,14 @@ export function HomeScreen() {
     const hasExistingScores = currentScores.some((score) => score > 0)
     const highestScore = Math.max(0, ...currentScores)
 
-    const isSwitchingFromFree = !state.config.scoreLimit
-    const isTournamentOver = !!state.config.scoreLimit && highestScore >= state.config.scoreLimit
+    const prevScoreLimit = state.config.scoreLimit
+    const isNewTournament =
+      prevScoreLimit === null ||
+      scoreLimit !== prevScoreLimit ||
+      highestScore >= (prevScoreLimit || 0)
 
-    // Intercept if tournament mode and there are existing scores that shouldn't carry over
-    if (
-      scoreLimit !== null &&
-      scoreLimit > 0 &&
-      hasExistingScores &&
-      (isSwitchingFromFree || isTournamentOver) &&
-      !forceReset
-    ) {
+    // Intercept if starting a tournament with existing scores that shouldn't carry over
+    if (scoreLimit !== null && hasExistingScores && isNewTournament && !forceReset) {
       setShowTournamentWarning(true)
       return
     }
@@ -439,6 +436,52 @@ export function HomeScreen() {
         </div>
       </section>
 
+      {/* Game Mode Panel */}
+      <section className="w-full flex flex-col gap-element-gap">
+        <h2 className="font-h2 text-h2 text-on-surface mb-2">Modo de Juego</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <NeonButton
+            variant={scoreLimit === null ? 'primary' : 'ghost'}
+            onClick={() => setScoreLimit(null)}
+            className={scoreLimit === null ? '' : 'bg-surface-container/50 border-outline-variant'}
+          >
+            PARTIDA LIBRE
+          </NeonButton>
+          <NeonButton
+            variant={scoreLimit !== null ? 'primary' : 'ghost'}
+            onClick={() => {
+              if (scoreLimit === null) setScoreLimit(5)
+            }}
+            className={scoreLimit !== null ? '' : 'bg-surface-container/50 border-outline-variant'}
+          >
+            MODO TORNEO
+          </NeonButton>
+        </div>
+
+        {scoreLimit !== null && (
+          <div className="animate-in fade-in slide-in-from-top-2 flex flex-col gap-3 p-4 bg-surface-container rounded-xl border border-outline-variant mt-2">
+            <label className="flex flex-col gap-2 font-body-md text-on-surface">
+              <span className="font-semibold text-primary-container text-xs uppercase tracking-wider">
+                Meta de Puntos:
+              </span>
+              <select
+                value={scoreLimit}
+                onChange={(e) => setScoreLimit(Number(e.target.value))}
+                className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
+              >
+                <option value={5}>A 5 Puntos</option>
+                <option value={10}>A 10 Puntos</option>
+                <option value={15}>A 15 Puntos</option>
+                <option value={20}>A 20 Puntos</option>
+              </select>
+            </label>
+            <p className="text-[10px] text-outline italic">
+              El primer jugador en alcanzar esta puntuación ganará el torneo.
+            </p>
+          </div>
+        )}
+      </section>
+
       {/* Advanced Settings Link */}
       <div className="w-full flex flex-col items-center mt-4">
         <button
@@ -479,22 +522,6 @@ export function HomeScreen() {
               >
                 <option value={1}>1 Farsante</option>
                 <option value={2}>2 Farsantes (Requiere 5+ jug.)</option>
-              </select>
-            </label>
-
-            {/* Setting 3: Límite de Puntos */}
-            <label className="flex flex-col gap-2 font-body-md text-on-surface">
-              <span className="font-semibold text-primary-container">Modo Torneo (Límite):</span>
-              <select
-                value={scoreLimit || 0}
-                onChange={(e) =>
-                  setScoreLimit(e.target.value === '0' ? null : Number(e.target.value))
-                }
-                className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
-              >
-                <option value={0}>Partida Libre (Infinito)</option>
-                <option value={5}>A 5 Puntos</option>
-                <option value={10}>A 10 Puntos</option>
               </select>
             </label>
 
