@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { HomeScreen } from './components/HomeScreen'
 import { DistributionScreen } from './components/DistributionScreen'
 import { DebateScreen } from './components/DebateScreen'
@@ -101,13 +102,24 @@ function App() {
 
       {/* Main Content Canvas */}
       <main className="flex-grow flex flex-col items-center justify-start w-full relative z-0 h-full">
-        {state.currentPhase === 'RESTORE_PROMPT' && <RestorePromptScreen />}
-        {state.currentPhase === 'HOME' && <HomeScreen />}
-        {state.currentPhase === 'REPARTO' && <DistributionScreen />}
-        {state.currentPhase === 'DEBATE' && <DebateScreen />}
-        {state.currentPhase === 'VOTACION' && <VotingScreen />}
-        {state.currentPhase === 'RESULTADO' && <ResultScreen />}
-        {state.currentPhase === 'PUNTUACIONES' && <ScoreScreen />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={state.currentPhase}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="w-full flex flex-col items-center flex-grow"
+          >
+            {state.currentPhase === 'RESTORE_PROMPT' && <RestorePromptScreen />}
+            {state.currentPhase === 'HOME' && <HomeScreen />}
+            {state.currentPhase === 'REPARTO' && <DistributionScreen />}
+            {state.currentPhase === 'DEBATE' && <DebateScreen />}
+            {state.currentPhase === 'VOTACION' && <VotingScreen />}
+            {state.currentPhase === 'RESULTADO' && <ResultScreen />}
+            {state.currentPhase === 'PUNTUACIONES' && <ScoreScreen />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Modals & Toasts */}
