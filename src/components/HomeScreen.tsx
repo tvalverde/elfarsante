@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { CyberInput } from './ui/CyberInput'
 import { PillTag } from './ui/PillTag'
 import { NeonButton } from './ui/NeonButton'
+import { NeonModal } from './ui/NeonModal'
 import { useGameState, type Player } from '../context/GameStateContext'
 import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
 import { useToast } from '../context/ToastContext'
@@ -56,6 +57,7 @@ export function HomeScreen() {
     return state.config.selectedCategories
   })
   const [showSettings, setShowSettings] = useState(false)
+  const [showTournamentWarning, setShowTournamentWarning] = useState(false)
   const [timerDuration, setTimerDuration] = useState(() => {
     const saved = localStorage.getItem('elfarsante_draft_config')
     if (saved) {
@@ -194,7 +196,14 @@ export function HomeScreen() {
     }
   }
 
-  const handleStartGame = () => {
+  const handleStartGame = (forceReset = false) => {
+    // Intercept if tournament mode and there are existing scores
+    const hasExistingScores = state.players.some((p) => p.score > 0)
+    if (scoreLimit !== null && hasExistingScores && !forceReset) {
+      setShowTournamentWarning(true)
+      return
+    }
+
     // Try to activate fullscreen only on mobile devices
     try {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -264,10 +273,11 @@ export function HomeScreen() {
     const gamePlayers: Player[] = validPlayers.map((name, index) => {
       const existingPlayer = state.players.find((p) => p.name === name)
       const isFarsante = farsanteIndices.includes(index)
+      const shouldResetScore = forceReset || scoreLimit !== null
       return {
         id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
         name,
-        score: existingPlayer ? existingPlayer.score : 0,
+        score: existingPlayer && !shouldResetScore ? existingPlayer.score : 0,
         farsanteCount: (existingPlayer ? existingPlayer.farsanteCount : 0) + (isFarsante ? 1 : 0),
         wronglyEliminatedCount: existingPlayer ? existingPlayer.wronglyEliminatedCount : 0,
         roundsSurvivedCount: existingPlayer ? existingPlayer.roundsSurvivedCount : 0,
@@ -523,9 +533,39 @@ export function HomeScreen() {
         )}
       </div>
 
+      {/* Tournament Warning Modal */}
+      <NeonModal
+        isOpen={showTournamentWarning}
+        onClose={() => setShowTournamentWarning(false)}
+        title="NUEVO TORNEO"
+      >
+        <div className="flex flex-col gap-6">
+          <p className="text-on-surface-variant">
+            Vas a iniciar un <span className="text-primary-container font-bold">Torneo</span>. Los
+            marcadores actuales se reiniciarán a cero.
+          </p>
+          <p className="text-on-surface-variant font-bold">¿Quieres continuar?</p>
+          <div className="flex flex-col gap-3">
+            <NeonButton
+              variant="primary"
+              fullWidth
+              onClick={() => {
+                setShowTournamentWarning(false)
+                handleStartGame(true)
+              }}
+            >
+              SÍ, REINICIAR Y JUGAR
+            </NeonButton>
+            <NeonButton variant="ghost" fullWidth onClick={() => setShowTournamentWarning(false)}>
+              CANCELAR
+            </NeonButton>
+          </div>
+        </div>
+      </NeonModal>
+
       {/* Fixed bottom full-width button */}
       <div className="fixed bottom-0 left-0 w-full z-50 p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
-        <NeonButton fullWidth onClick={handleStartGame}>
+        <NeonButton fullWidth onClick={() => handleStartGame()}>
           ¡JUGAR!
         </NeonButton>
       </div>

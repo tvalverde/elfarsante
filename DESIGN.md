@@ -162,7 +162,8 @@ Small, circular dots or thin lines that pulse slightly when a player is "Thinkin
 
 - **Do use Stable IDs:** Attempt to preserve player IDs and Scores from the previous round by matching names in the state.
 - **Do use Weighted Fairness (3 Players):** Use a weighted system (1 ticket for previous Farsante, 4 for others) to reduce consecutive repeats to ~11%. Use pure randomness for > 3 players.
-- **Do respect Score Integrity:** Do not reset scores to zero when moving from `PUNTUACIONES` to `HOME` and starting a new round.
+- **Do respect Score Integrity:** Preserve scores when moving from `PUNTUACIONES` to `HOME` for Free Mode rounds.
+- **Do manage Tournament Transitions:** In Tournament Mode (`scoreLimit !== null`), intercept `handleStartGame` with a warning if any player has `score > 0`. Upon tournament completion, present a victory modal to choose between a full reset or transitioning to Free Mode (preserving scores and setting `scoreLimit: null`).
 - **Do delay Identity Revelation:** In the `RESULTADO` phase, only reveal the identity of the Farsantes if the game ends (e.g., Farsantes win by numbers).
 - **Do limit Player Names:** Player names must be limited to **15 characters**. Use `maxLength={15}`.
 

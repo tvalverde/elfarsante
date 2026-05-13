@@ -6,6 +6,7 @@ import { NeonModal } from './ui/NeonModal'
 export function ScoreScreen() {
   const { state, dispatch } = useGameState()
   const [showResetModal, setShowResetModal] = useState(false)
+  const [showVictoryModal, setShowVictoryModal] = useState(false)
 
   const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score)
   const highestScore = sortedPlayers[0]?.score || 0
@@ -14,10 +15,25 @@ export function ScoreScreen() {
 
   const handleNextRound = () => {
     if (isTournamentOver) {
-      dispatch({ type: 'RESET_GAME' })
+      setShowVictoryModal(true)
     } else {
       dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
     }
+  }
+
+  const handleKeepScoresAndFreeMode = () => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    let config: Record<string, unknown> = {}
+    if (saved) {
+      try {
+        config = JSON.parse(saved)
+      } catch {
+        // ignore
+      }
+    }
+    config.scoreLimit = null
+    localStorage.setItem('elfarsante_draft_config', JSON.stringify(config))
+    dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
   }
 
   // Helper to find leaders in a category
@@ -185,6 +201,38 @@ export function ScoreScreen() {
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={() => setShowResetModal(false)}>
                 CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
+
+        <NeonModal
+          isOpen={showVictoryModal}
+          onClose={() => setShowVictoryModal(false)}
+          title="¡FIN DEL TORNEO!"
+        >
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <span className="material-symbols-outlined text-5xl text-primary-container animate-bounce">
+                military_tech
+              </span>
+              <p className="text-on-surface-variant text-center">
+                El torneo ha terminado. ¿Qué quieres hacer con los marcadores?
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={() => {
+                  dispatch({ type: 'RESET_GAME' })
+                  setShowVictoryModal(false)
+                }}
+              >
+                REINICIAR A CERO Y VOLVER
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={handleKeepScoresAndFreeMode}>
+                CONSERVAR PUNTOS Y MODO LIBRE
               </NeonButton>
             </div>
           </div>
