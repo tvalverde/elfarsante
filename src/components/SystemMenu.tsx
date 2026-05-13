@@ -7,11 +7,14 @@ import { NeonModal } from './ui/NeonModal'
 
 declare const __APP_VERSION__: string
 
+type SystemView = 'menu' | 'instructions' | 'sync'
+
 export function SystemMenu() {
   const { dispatch, syncStatus } = useGameState()
   const { showToast } = useToast()
   const { syncCode, linkDevice, unlinkDevice, syncUid } = useAuth()
 
+  const [activeView, setActiveView] = useState<SystemView>('menu')
   const [syncInput, setSyncCodeInput] = useState('')
   const [isLinking, setIsLinking] = useState(false)
   const [showHardResetModal, setShowHardResetModal] = useState(false)
@@ -31,13 +34,24 @@ export function SystemMenu() {
     }
   }
 
-  return (
-    <div className="flex flex-col gap-8 pb-8">
-      {/* 1. Instrucciones */}
-      <section className="flex flex-col gap-4">
-        <h2 className="text-primary-container font-black uppercase tracking-[0.2em] text-xs border-b border-primary-container/20 pb-2">
-          Instrucciones de Juego
-        </h2>
+  const renderBackButton = (title: string) => (
+    <div className="flex items-center gap-3 mb-6 border-b border-outline-variant/30 pb-4">
+      <button
+        onClick={() => setActiveView('menu')}
+        className="flex items-center justify-center p-2 -ml-2 rounded-full text-outline hover:bg-surface-container hover:text-cyan-300 transition-colors active:scale-95"
+      >
+        <span className="material-symbols-outlined">arrow_back</span>
+      </button>
+      <h2 className="text-primary-container font-black uppercase tracking-[0.2em] text-xs m-0 mt-0.5">
+        {title}
+      </h2>
+    </div>
+  )
+
+  if (activeView === 'instructions') {
+    return (
+      <div className="flex flex-col pb-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        {renderBackButton('Instrucciones')}
 
         <div className="flex flex-col gap-6">
           <section>
@@ -109,35 +123,36 @@ export function SystemMenu() {
             </div>
           </section>
         </div>
-      </section>
+      </div>
+    )
+  }
 
-      {/* 2. Sincronización en la Nube */}
-      <section className="flex flex-col gap-4">
-        <h2 className="text-primary-container font-black uppercase tracking-[0.2em] text-xs border-b border-primary-container/20 pb-2">
-          Sincronización en la Nube
-        </h2>
+  if (activeView === 'sync') {
+    return (
+      <div className="flex flex-col pb-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        {renderBackButton('Sincronización')}
 
-        <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant flex flex-col gap-3">
-          <div className="flex justify-between items-center text-left">
-            <span className="text-[10px] text-outline uppercase font-bold tracking-tighter leading-tight pr-4">
-              Tu código de este dispositivo:
+        <div className="bg-surface-container-high p-4 rounded-lg border border-outline-variant flex flex-col gap-4">
+          <div className="flex flex-col gap-1 text-left border-b border-outline-variant/30 pb-3">
+            <span className="text-[10px] text-outline uppercase font-bold tracking-tighter leading-tight">
+              Tu código en este dispositivo:
             </span>
             <div className="flex items-center gap-2">
-              <span className="font-h1 text-lg text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] whitespace-nowrap">
+              <span className="font-h1 text-2xl text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] whitespace-nowrap tracking-widest">
                 {syncCode || '...'}
               </span>
               {syncStatus === 'synced' && (
-                <span className="material-symbols-outlined text-primary-container text-lg animate-in fade-in zoom-in duration-300">
+                <span className="material-symbols-outlined text-primary-container text-xl animate-in fade-in zoom-in duration-300">
                   cloud_done
                 </span>
               )}
               {syncStatus === 'pending' && (
-                <span className="material-symbols-outlined text-orange-400 text-lg animate-pulse">
+                <span className="material-symbols-outlined text-orange-400 text-xl animate-pulse">
                   cloud_sync
                 </span>
               )}
               {syncStatus === 'error' && (
-                <span className="material-symbols-outlined text-neon-red text-lg animate-bounce">
+                <span className="material-symbols-outlined text-neon-red text-xl animate-bounce">
                   cloud_off
                 </span>
               )}
@@ -145,62 +160,138 @@ export function SystemMenu() {
           </div>
 
           {syncUid ? (
-            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-outline-variant/20">
-              <p className="text-[10px] text-primary-container font-bold uppercase">
-                ✓ Dispositivo Vinculado
-              </p>
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex items-center gap-2 bg-primary-container/10 p-3 rounded text-primary-container border border-primary-container/20">
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                <span className="text-xs font-bold uppercase tracking-wide">
+                  Dispositivo Vinculado
+                </span>
+              </div>
               <button
                 onClick={unlinkDevice}
-                className="text-[10px] text-neon-red hover:underline text-left uppercase font-black"
+                className="text-[10px] text-neon-red hover:text-white hover:bg-neon-red/20 transition-colors p-2 rounded text-center uppercase font-black tracking-widest border border-transparent hover:border-neon-red/50"
               >
-                Desvincular y usar perfil local
+                Desvincular perfil
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              <p className="text-[10px] text-on-surface-variant leading-tight">
-                Usa el código de otro dispositivo para sincronizar tus partidas e historial.
+            <div className="flex flex-col gap-3 pt-2">
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Para recuperar tu historial o compartir partida con otro dispositivo, introduce su
+                código:
               </p>
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={syncInput}
                   onChange={(e) => setSyncCodeInput(e.target.value.toUpperCase())}
-                  placeholder="CÓDIGO (ABC-123)"
-                  className="bg-surface-container-high border border-outline-variant text-white text-xs p-2 rounded flex-grow outline-none focus:border-primary-container min-w-0"
+                  placeholder="Ej: ABC-123"
+                  className="bg-background border border-outline-variant text-white text-sm p-3 rounded-lg flex-grow outline-none focus:border-primary-container min-w-0 font-mono text-center tracking-widest uppercase placeholder:normal-case placeholder:tracking-normal"
                   maxLength={7}
                 />
-                <button
-                  onClick={() => setShowLinkModal(true)}
-                  disabled={isLinking}
-                  className="bg-primary-container text-background px-3 py-2 rounded text-[10px] font-black uppercase disabled:opacity-50 whitespace-nowrap"
-                >
-                  {isLinking ? '...' : 'VINCULAR'}
-                </button>
               </div>
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={() => setShowLinkModal(true)}
+                disabled={isLinking || syncInput.length < 3}
+                className="py-3 text-sm mt-1"
+              >
+                {isLinking ? 'VINCULANDO...' : 'VINCULAR AHORA'}
+              </NeonButton>
             </div>
           )}
         </div>
-      </section>
 
-      {/* 3. Zona de Peligro */}
-      <section className="flex flex-col gap-4">
-        <h2 className="text-neon-red font-black uppercase tracking-[0.2em] text-xs border-b border-neon-red/20 pb-2">
-          Zona de Peligro
-        </h2>
-        <button
-          onClick={() => setShowHardResetModal(true)}
-          className="w-full py-3 border border-neon-red/30 text-neon-red/60 hover:text-neon-red hover:border-neon-red hover:bg-neon-red/5 transition-all uppercase text-xs font-bold tracking-[0.2em] rounded-full"
+        <NeonModal
+          isOpen={showLinkModal}
+          onClose={() => setShowLinkModal(false)}
+          title="¿VINCULAR DISPOSITIVO?"
         >
-          Borrar todos los datos
-        </button>
-      </section>
+          <div className="flex flex-col gap-6">
+            <p className="text-on-surface-variant">
+              Al vincularte a otro código, se{' '}
+              <span className="text-primary-container font-bold">REEMPLAZARÁ</span> tu progreso
+              actual en este dispositivo.
+            </p>
+            <p className="text-on-surface-variant text-sm border-l-2 border-primary-container pl-3 py-1 bg-primary-container/5">
+              Asegúrate de tener apuntado tu código actual{' '}
+              <span className="text-white font-bold">{syncCode}</span> si quieres volver a él más
+              adelante.
+            </p>
+            <div className="flex flex-col gap-3">
+              <NeonButton
+                variant="primary"
+                fullWidth
+                onClick={handleLinkDevice}
+                disabled={isLinking}
+              >
+                {isLinking ? 'VINCULANDO...' : 'SÍ, VINCULAR'}
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={() => setShowLinkModal(false)}>
+                CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
+      </div>
+    )
+  }
 
-      <p className="text-[10px] text-outline text-center uppercase tracking-widest mt-4">
-        v{__APP_VERSION__} • Diseñado para la infamia
-      </p>
+  // Main Menu View
+  return (
+    <div className="flex flex-col gap-2 pb-6 animate-in fade-in slide-in-from-left-4 duration-300">
+      <button
+        onClick={() => setActiveView('instructions')}
+        className="flex items-center justify-between w-full p-4 rounded-xl bg-surface-container border border-outline-variant/30 hover:border-primary-container/50 hover:bg-surface-container-high transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-primary-container">menu_book</span>
+          <span className="font-bold text-sm tracking-wider uppercase text-white group-hover:text-primary-container transition-colors">
+            Instrucciones
+          </span>
+        </div>
+        <span className="material-symbols-outlined text-outline group-hover:text-primary-container transition-colors">
+          chevron_right
+        </span>
+      </button>
 
-      {/* Modals Internos */}
+      <button
+        onClick={() => setActiveView('sync')}
+        className="flex items-center justify-between w-full p-4 rounded-xl bg-surface-container border border-outline-variant/30 hover:border-primary-container/50 hover:bg-surface-container-high transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-primary-container">cloud_sync</span>
+          <span className="font-bold text-sm tracking-wider uppercase text-white group-hover:text-primary-container transition-colors">
+            Sincronización en la Nube
+          </span>
+        </div>
+        <span className="material-symbols-outlined text-outline group-hover:text-primary-container transition-colors">
+          chevron_right
+        </span>
+      </button>
+
+      <button
+        onClick={() => setShowHardResetModal(true)}
+        className="flex items-center justify-between w-full p-4 rounded-xl bg-neon-red/5 border border-neon-red/20 hover:border-neon-red/60 hover:bg-neon-red/10 transition-all group mt-6"
+      >
+        <div className="flex items-center gap-3">
+          <span className="material-symbols-outlined text-neon-red">delete_forever</span>
+          <span className="font-bold text-sm tracking-wider uppercase text-neon-red group-hover:text-red-400 transition-colors">
+            Borrar todos los datos
+          </span>
+        </div>
+      </button>
+
+      <div className="mt-8 text-center flex flex-col gap-1">
+        <p className="text-[10px] text-outline uppercase tracking-[0.3em]">
+          EL FARSANTE v{__APP_VERSION__}
+        </p>
+        <p className="text-[10px] text-outline/50 uppercase tracking-widest">
+          Diseñado para la infamia
+        </p>
+      </div>
+
       <NeonModal
         isOpen={showHardResetModal}
         onClose={() => setShowHardResetModal(false)}
@@ -224,33 +315,6 @@ export function SystemMenu() {
               SÍ, BORRAR TODO
             </NeonButton>
             <NeonButton variant="ghost" fullWidth onClick={() => setShowHardResetModal(false)}>
-              CANCELAR
-            </NeonButton>
-          </div>
-        </div>
-      </NeonModal>
-
-      <NeonModal
-        isOpen={showLinkModal}
-        onClose={() => setShowLinkModal(false)}
-        title="¿VINCULAR DISPOSITIVO?"
-      >
-        <div className="flex flex-col gap-6">
-          <p className="text-on-surface-variant">
-            Al vincularte a otro código, se{' '}
-            <span className="text-primary-container font-bold">REEMPLAZARÁ</span> tu progreso actual
-            en este dispositivo.
-          </p>
-          <p className="text-on-surface-variant text-sm border-l-2 border-primary-container pl-3 py-1 bg-primary-container/5">
-            Asegúrate de tener apuntado tu código actual{' '}
-            <span className="text-white font-bold">{syncCode}</span> si quieres volver a él más
-            adelante.
-          </p>
-          <div className="flex flex-col gap-3">
-            <NeonButton variant="primary" fullWidth onClick={handleLinkDevice} disabled={isLinking}>
-              {isLinking ? 'VINCULANDO...' : 'SÍ, VINCULAR'}
-            </NeonButton>
-            <NeonButton variant="ghost" fullWidth onClick={() => setShowLinkModal(false)}>
               CANCELAR
             </NeonButton>
           </div>
