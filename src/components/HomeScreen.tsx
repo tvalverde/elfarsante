@@ -398,44 +398,6 @@ export function HomeScreen() {
         </div>
       </section>
 
-      {/* Categories Panel */}
-      <section className="w-full flex flex-col gap-element-gap">
-        <h2 className="font-h2 text-h2 text-on-surface mb-2">Categorías</h2>
-        <div className="flex flex-wrap gap-3">
-          {AVAILABLE_CATEGORIES.map((category) => {
-            const icons: Record<string, string> = {
-              aleatorio: 'shuffle',
-              profesiones: 'work',
-              comida_bebida: 'restaurant',
-              animales: 'pets',
-              deportes: 'sports_soccer',
-              lugares: 'public',
-              objetos_casa: 'chair',
-              summer: 'sunny',
-              fashion: 'checkroom',
-              christmas: 'park',
-            }
-            return (
-              <PillTag
-                key={category}
-                active={selectedCategories.includes(category)}
-                onClick={() => toggleCategory(category)}
-                icon={icons[category]}
-                className={
-                  category === 'aleatorio'
-                    ? selectedCategories.includes('aleatorio')
-                      ? '!bg-primary-container !text-background border-white'
-                      : 'border-white/50 text-white/70'
-                    : ''
-                }
-              >
-                {CATEGORY_LABELS[category]}
-              </PillTag>
-            )
-          })}
-        </div>
-      </section>
-
       {/* Game Mode Panel */}
       <section className="w-full flex flex-col gap-element-gap">
         <h2 className="font-h2 text-h2 text-on-surface mb-2">Modo de Juego</h2>
@@ -482,7 +444,43 @@ export function HomeScreen() {
         )}
       </section>
 
-      {/* Advanced Settings Link */}
+      {/* Categories Panel */}
+      <section className="w-full flex flex-col gap-element-gap">
+        <h2 className="font-h2 text-h2 text-on-surface mb-2">Categorías</h2>
+        <div className="flex flex-wrap gap-3">
+          {AVAILABLE_CATEGORIES.map((category) => {
+            const icons: Record<string, string> = {
+              aleatorio: 'shuffle',
+              profesiones: 'work',
+              comida_bebida: 'restaurant',
+              animales: 'pets',
+              deportes: 'sports_soccer',
+              lugares: 'public',
+              objetos_casa: 'chair',
+              summer: 'sunny',
+              fashion: 'checkroom',
+              christmas: 'park',
+            }
+            return (
+              <PillTag
+                key={category}
+                active={selectedCategories.includes(category)}
+                onClick={() => toggleCategory(category)}
+                icon={icons[category]}
+                className={
+                  category === 'aleatorio'
+                    ? selectedCategories.includes('aleatorio')
+                      ? '!bg-primary-container !text-background border-white'
+                      : 'border-white/50 text-white/70'
+                    : ''
+                }
+              >
+                {CATEGORY_LABELS[category]}
+              </PillTag>
+            )
+          })}
+        </div>
+      </section>
       <div className="w-full flex flex-col items-center mt-4">
         <button
           onClick={() => setShowSettings(!showSettings)}
