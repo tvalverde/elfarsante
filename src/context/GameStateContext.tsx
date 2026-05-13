@@ -7,7 +7,7 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react'
-import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
 
@@ -59,6 +59,8 @@ export interface GameState {
   round: RoundData
   usedWords: Record<string, string[]>
   updatedAt: number
+  localMutationCount: number
+  lastMutatedBy?: string
 }
 
 export type SyncStatus = 'synced' | 'pending' | 'error'
@@ -86,6 +88,7 @@ const initialState: GameState = {
   },
   usedWords: {},
   updatedAt: 0,
+  localMutationCount: 0,
 }
 
 type Action =
@@ -185,11 +188,12 @@ export function gameReducer(state: GameState, action: Action): GameState {
       return state
   }
 
-  // If state hasn't changed, don't update timestamp to avoid redundant triggers
+  // If state hasn't changed, don't update to avoid redundant triggers
   if (newState === state) return state
 
-  // For any local action that changed the state, update the timestamp
-  return { ...newState, updatedAt: Date.now() }
+  // For any local action that changed the state, increment the logical clock.
+  // We stop updating updatedAt locally and rely on Firebase's serverTimestamp.
+  return { ...newState, localMutationCount: state.localMutationCount + 1 }
 }
 
 const GameStateContext = createContext<
@@ -217,7 +221,15 @@ function initGameState(initial: GameState): GameState {
           ...parsed,
           usedWords: parsed.usedWords || {},
           updatedAt: parsed.updatedAt || 0,
+          localMutationCount: parsed.localMutationCount || 0,
         }
+
+        // Anti-poison check: If the local timestamp is in the future (> 5s skew),
+        // reset it to 0 so we don't ignore cloud updates.
+        if (stateToReturn.updatedAt > Date.now() + 5000) {
+          stateToReturn.updatedAt = 0
+        }
+
         if (
           parsed.currentPhase !== 'HOME' &&
           parsed.currentPhase !== 'PUNTUACIONES' &&
@@ -239,24 +251,18 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const { activeUid } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
   const lastActiveUidRef = useRef<string | null>(activeUid)
-  const isFirstSnapshotAfterLinkRef = useRef<boolean>(false)
+
+  // A unique ID for this app session to identify our own writes (echos)
+  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 10))
+  const lastPushedMutationCountRef = useRef<number>(state.localMutationCount)
   const stateRef = useRef<GameState>(state)
-  const lastPushedUpdateRef = useRef<number>(state.updatedAt)
 
   // Keep stateRef up to date for listeners
   useEffect(() => {
     stateRef.current = state
   }, [state])
 
-  // Detect link/unlink events to force next snapshot adoption
-  useEffect(() => {
-    if (lastActiveUidRef.current !== activeUid) {
-      lastActiveUidRef.current = activeUid
-      isFirstSnapshotAfterLinkRef.current = true
-    }
-  }, [activeUid])
-
-  // Cloud Listener: Update local state when Cloud changes (from other devices)
+  // Cloud Listener: Update local state when Cloud changes (from other devices or manual edits)
   useEffect(() => {
     if (!activeUid) return
 
@@ -266,15 +272,26 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         const cloudState = snap.data() as GameState
         const currentState = stateRef.current
 
-        // Accept if cloud is newer OR if we just linked/unlinked (force adopt)
-        if (
-          isFirstSnapshotAfterLinkRef.current ||
-          (cloudState.updatedAt > currentState.updatedAt &&
-            currentState.currentPhase !== 'RESTORE_PROMPT')
-        ) {
-          isFirstSnapshotAfterLinkRef.current = false
-          // Update our tracker so we don't echo this back
-          lastPushedUpdateRef.current = cloudState.updatedAt
+        // Normalize Firestore Timestamp to milliseconds
+        const updatedAt = cloudState.updatedAt as unknown
+        if (updatedAt && typeof updatedAt === 'object' && 'toMillis' in updatedAt) {
+          cloudState.updatedAt = (updatedAt as { toMillis: () => number }).toMillis()
+        }
+
+        // 1. Echo Check: If this change was made by US in this session, ignore the payload.
+        // This prevents UI jitter/rollback while keeping local state optimistic.
+        if (cloudState.lastMutatedBy === sessionId) {
+          // Still update our tracker to match the server's mutation count
+          lastPushedMutationCountRef.current = cloudState.localMutationCount
+          setSyncStatus('synced')
+          return
+        }
+
+        // 2. External Truth: If it's from another device or manual edit, accept it.
+        // We accept inconditionally because Firestore guarantees delivery order.
+        if (currentState.currentPhase !== 'RESTORE_PROMPT') {
+          // Update tracker so we don't echo this back
+          lastPushedMutationCountRef.current = cloudState.localMutationCount
           dispatch({ type: 'LOAD_STATE', payload: cloudState })
           setSyncStatus('synced')
         }
@@ -282,7 +299,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     })
 
     return unsubscribe
-  }, [activeUid]) // Remove currentPhase from deps to prevent re-subscriptions on phase change
+  }, [activeUid, sessionId])
 
   // Network listener to handle offline status
   useEffect(() => {
@@ -306,23 +323,29 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
       // 2. Sync to Cloud (If authenticated)
       if (activeUid) {
-        // If the UID has changed (linking/unlinking), don't push local state immediately
-        // Wait for the onSnapshot listener to pull the remote state first
+        // If the UID has changed (linking/unlinking), skip pushing until first snapshot arrives
         if (lastActiveUidRef.current !== activeUid) {
           lastActiveUidRef.current = activeUid
           return
         }
 
-        // Only push if this state version is newer than what we last pushed/received.
-        // Prevents the "Echo Loop" where Device B receives A's write and writes it back.
-        if (state.updatedAt > lastPushedUpdateRef.current) {
-          lastPushedUpdateRef.current = state.updatedAt
+        // Only push if we have new local mutations not yet sent to the server.
+        if (state.localMutationCount > lastPushedMutationCountRef.current) {
+          lastPushedMutationCountRef.current = state.localMutationCount
 
           // Defer pending status to avoid cascading render warning in effect
           setTimeout(() => setSyncStatus((prev) => (prev !== 'pending' ? 'pending' : prev)), 0)
 
           const docRef = doc(db, 'users', activeUid)
-          setDoc(docRef, state, { merge: true })
+
+          // Inject authorship and server time during transport
+          const payload = {
+            ...state,
+            lastMutatedBy: sessionId,
+            updatedAt: serverTimestamp(),
+          }
+
+          setDoc(docRef, payload, { merge: true })
             .then(() => {
               setSyncStatus((prev) => (prev !== 'synced' ? 'synced' : prev))
             })

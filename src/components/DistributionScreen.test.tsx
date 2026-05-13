@@ -62,6 +62,7 @@ describe('DistributionScreen Layout (Sticky Bottom Regression)', () => {
     },
     usedWords: {},
     updatedAt: 0,
+    localMutationCount: 0,
   }
 
   it('should have the sticky bottom pattern and required padding', () => {
