@@ -10,7 +10,11 @@ El Farsante is a local hidden-role game (Social Deduction). It uses a "pass-and-
 - **Strict Technical Language:** All code, comments, commit messages, and documentation MUST be in English. Spanish is reserved ONLY for the game's UI and conversational interaction.
 - **Conditional Deployment:** NEVER run `npm run deploy` if the changes only affect documentation, repository configuration (e.g., `.gitignore`), or internal meta-files. Deployment is strictly for functional game logic or UI updates.
 - **Meaningful Commits & Sync:** Commit messages MUST describe the actual changes or features implemented. Avoid referencing internal "phases" or "stages". Always use the imperative mood, adhere to Conventional Commits, and PUSH the changes to the remote repository immediately after committing.
-- **Deployment Flow:** The `npm run deploy` command MUST execute `npm version patch` BEFORE `npm run build` to ensure the correct version is injected into the production bundle.
+- **Semantic Versioning & Deployment:** Follow strict SemVer.
+  - **PATCH:** For bug fixes and anomalous behaviors.
+  - **MINOR:** For new features or non-breaking UI improvements (like the recent animations).
+  - **MAJOR:** For breaking changes or total architectural redesigns.
+    The `npm run deploy` command executes `npm run build && gh-pages -d dist`. You MUST MANUALLY execute the appropriate version bump command (`npm version patch|minor|major`) BEFORE running `deploy` to ensure the version correctly reflects the impact of the changes.
 - **Zero Native Alerts:** Never use `window.alert()` or `confirm()`. Use the `useToast()` hook for ephimeral feedback/errors and `NeonModal` for complex interactions or documentation.
 - **Code Quality & CI Hooks:** Before committing, ensure all modified file types are covered by the `lint-staged` configuration. Maintain strictly formatted code using Prettier (run `npm run format` and `npx eslint . --fix`).
 - **Architecture Documentation:** Always add to `DESIGN.md` any architecture or business logic rules that make sense to be there and are not obvious, following the DESIGN.md specifications.
