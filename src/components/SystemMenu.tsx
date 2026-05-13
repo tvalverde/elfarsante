@@ -23,14 +23,19 @@ export function SystemMenu() {
   const handleLinkDevice = async () => {
     if (!syncInput) return
     setIsLinking(true)
-    const success = await linkDevice(syncInput)
+    const result = await linkDevice(syncInput)
     setIsLinking(false)
-    if (success) {
+
+    if (result === 'success') {
       showToast('¡Dispositivo vinculado con éxito!', 'success')
       setSyncCodeInput('')
       setShowLinkModal(false)
-    } else {
+    } else if (result === 'invalid_code') {
       showToast('Código de vinculación inválido.', 'error')
+    } else if (result === 'rejected') {
+      showToast('La conexión ha sido rechazada por el dispositivo original.', 'error')
+    } else if (result === 'timeout') {
+      showToast('Tiempo de espera agotado. Inténtalo de nuevo.', 'error')
     }
   }
 
@@ -197,7 +202,7 @@ export function SystemMenu() {
                 disabled={isLinking || syncInput.length < 3}
                 className="py-3 text-sm mt-1"
               >
-                {isLinking ? 'VINCULANDO...' : 'VINCULAR AHORA'}
+                {isLinking ? 'ESPERANDO APROBACIÓN...' : 'VINCULAR AHORA'}
               </NeonButton>
             </div>
           )}

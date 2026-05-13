@@ -1,7 +1,28 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react'
 import { onAuthStateChanged, type User } from 'firebase/auth'
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { auth, db, initAuth } from '../firebase'
+
+export interface LinkRequest {
+  id: string
+  targetUid: string
+  requesterSessionId: string
+  status: 'pending' | 'approved' | 'rejected'
+  createdAt: unknown
+}
+
+export type LinkResult = 'success' | 'rejected' | 'timeout' | 'invalid_code'
 
 interface AuthContextType {
   user: User | null
@@ -9,8 +30,11 @@ interface AuthContextType {
   syncUid: string | null
   activeUid: string | null
   syncCode: string | null
-  linkDevice: (code: string) => Promise<boolean>
+  pendingLinkRequest: LinkRequest | null
+  linkDevice: (code: string) => Promise<LinkResult>
   unlinkDevice: () => void
+  approveLinkRequest: (requestId: string) => Promise<void>
+  rejectLinkRequest: (requestId: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem('elfarsante_sync_uid')
   })
   const [syncCode, setSyncCode] = useState<string | null>(null)
+  const [pendingLinkRequest, setPendingLinkRequest] = useState<LinkRequest | null>(null)
+
+  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 10))
 
   const generateReadableCode = useCallback(() => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -68,23 +95,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, syncUid, fetchOrCreateSyncCode])
 
-  const linkDevice = async (code: string) => {
-    const docRef = doc(db, 'sync_codes', code.toUpperCase().trim())
+  // Listen for incoming link requests directed at my active profile
+  useEffect(() => {
+    const activeId = syncUid || user?.uid
+    if (!activeId) return
+
+    const q = query(
+      collection(db, 'link_requests'),
+      where('targetUid', '==', activeId),
+      where('status', '==', 'pending'),
+    )
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        // Just take the first pending request
+        const docData = snapshot.docs[0]
+        setPendingLinkRequest({ id: docData.id, ...docData.data() } as LinkRequest)
+      } else {
+        setPendingLinkRequest(null)
+      }
+    })
+
+    return unsubscribe
+  }, [user, syncUid])
+
+  const linkDevice = async (code: string): Promise<LinkResult> => {
+    const cleanCode = code.toUpperCase().trim()
+    const docRef = doc(db, 'sync_codes', cleanCode)
     const docSnap = await getDoc(docRef)
 
-    if (docSnap.exists()) {
-      const targetUid = docSnap.data().uid
-      localStorage.setItem('elfarsante_sync_uid', targetUid)
-      setSyncUid(targetUid)
-      // fetchOrCreateSyncCode effect will update the syncCode state
-      return true
+    if (!docSnap.exists()) {
+      return 'invalid_code'
     }
-    return false
+
+    const targetUid = docSnap.data().uid
+
+    // Create a link request
+    const requestId = `req_${Date.now()}_${sessionId}`
+    const requestRef = doc(db, 'link_requests', requestId)
+
+    await setDoc(requestRef, {
+      targetUid,
+      requesterSessionId: sessionId,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    })
+
+    // Wait for the request to be approved or rejected (or timeout after 60s)
+    return new Promise((resolve) => {
+      const unsubscribe = onSnapshot(requestRef, (snap) => {
+        const data = snap.data()
+        if (!data) return
+
+        if (data.status === 'approved') {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          localStorage.setItem('elfarsante_sync_uid', targetUid)
+          setSyncUid(targetUid)
+          resolve('success')
+        } else if (data.status === 'rejected') {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          resolve('rejected')
+        }
+      })
+
+      const timeoutId = setTimeout(() => {
+        unsubscribe()
+        // Mark as timed out in DB so target device doesn't see it forever if it comes back online
+        updateDoc(requestRef, { status: 'timeout' }).catch(console.error)
+        resolve('timeout')
+      }, 60000) // 60 seconds
+    })
   }
 
   const unlinkDevice = () => {
     localStorage.removeItem('elfarsante_sync_uid')
     setSyncUid(null)
+  }
+
+  const approveLinkRequest = async (requestId: string) => {
+    const requestRef = doc(db, 'link_requests', requestId)
+    await updateDoc(requestRef, { status: 'approved' })
+    setPendingLinkRequest(null)
+  }
+
+  const rejectLinkRequest = async (requestId: string) => {
+    const requestRef = doc(db, 'link_requests', requestId)
+    await updateDoc(requestRef, { status: 'rejected' })
+    setPendingLinkRequest(null)
   }
 
   return (
@@ -95,8 +194,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         syncUid,
         activeUid: syncUid || user?.uid || null,
         syncCode,
+        pendingLinkRequest,
         linkDevice,
         unlinkDevice,
+        approveLinkRequest,
+        rejectLinkRequest,
       }}
     >
       {children}

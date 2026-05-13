@@ -7,15 +7,18 @@ import { ResultScreen } from './components/ResultScreen'
 import { ScoreScreen } from './components/ScoreScreen'
 import { RestorePromptScreen } from './components/RestorePromptScreen'
 import { useGameState } from './context/GameStateContext'
+import { useAuth } from './context/AuthContext'
 import { useWakeLock } from './hooks/useWakeLock'
 import { NeonModal } from './components/ui/NeonModal'
 import { CyberToast } from './components/ui/CyberToast'
 import { SystemMenu } from './components/SystemMenu'
+import { NeonButton } from './components/ui/NeonButton'
 
 declare const __APP_VERSION__: string
 
 function App() {
   const { state, dispatch } = useGameState()
+  const { pendingLinkRequest, approveLinkRequest, rejectLinkRequest } = useAuth()
   const { currentPhase } = state
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isReady, setIsReady] = useState(false)
@@ -110,6 +113,40 @@ function App() {
       {/* Modals & Toasts */}
       <NeonModal isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} title="SISTEMA">
         <SystemMenu />
+      </NeonModal>
+
+      {/* Global Link Request Approval Modal */}
+      <NeonModal
+        isOpen={!!pendingLinkRequest}
+        onClose={() => {}} // Force decision, no easy close
+        title="⚠️ NUEVA VINCULACIÓN"
+      >
+        <div className="flex flex-col gap-6">
+          <p className="text-on-surface-variant text-center">
+            Un nuevo dispositivo está intentando vincularse a tu perfil.
+          </p>
+          <p className="text-sm border-l-2 border-primary-container pl-4 py-2 bg-primary-container/5 text-primary-container font-semibold italic">
+            "Si permites el acceso, el otro dispositivo podrá ver y modificar tus partidas en tiempo
+            real."
+          </p>
+          <div className="flex flex-col gap-3 mt-2">
+            <NeonButton
+              variant="primary"
+              fullWidth
+              onClick={() => pendingLinkRequest && approveLinkRequest(pendingLinkRequest.id)}
+            >
+              PERMITIR ACCESO
+            </NeonButton>
+            <NeonButton
+              variant="ghost"
+              fullWidth
+              onClick={() => pendingLinkRequest && rejectLinkRequest(pendingLinkRequest.id)}
+              className="!text-neon-red !border-neon-red/30 hover:!bg-neon-red/10"
+            >
+              RECHAZAR
+            </NeonButton>
+          </div>
+        </div>
       </NeonModal>
 
       <CyberToast />
