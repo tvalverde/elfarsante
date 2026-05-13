@@ -207,13 +207,13 @@ export function HomeScreen() {
     const hasExistingScores = currentScores.some((score) => score > 0)
     const highestScore = Math.max(0, ...currentScores)
 
-    const isSwitchingFromFree = state.config.scoreLimit === null
-    const isTournamentOver =
-      state.config.scoreLimit !== null && highestScore >= state.config.scoreLimit
+    const isSwitchingFromFree = !state.config.scoreLimit
+    const isTournamentOver = !!state.config.scoreLimit && highestScore >= state.config.scoreLimit
 
     // Intercept if tournament mode and there are existing scores that shouldn't carry over
     if (
       scoreLimit !== null &&
+      scoreLimit > 0 &&
       hasExistingScores &&
       (isSwitchingFromFree || isTournamentOver) &&
       !forceReset
