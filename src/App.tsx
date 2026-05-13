@@ -17,6 +17,18 @@ function App() {
   const { state, dispatch } = useGameState()
   const { currentPhase } = state
   const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+
+  // Wait for external resources (fonts)
+  useEffect(() => {
+    document.fonts.ready.then(() => {
+      setIsReady(true)
+    })
+
+    // Fallback security timeout
+    const timeout = setTimeout(() => setIsReady(true), 3000)
+    return () => clearTimeout(timeout)
+  }, [])
 
   // Keep screen awake globally
   useWakeLock(true)
@@ -45,6 +57,22 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [currentPhase, dispatch])
+
+  if (!isReady) {
+    return (
+      <div className="fixed inset-0 bg-[#0a0a0a] flex flex-col items-center justify-center z-[100] p-6 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-2 border-cyan-500/10 border-t-cyan-500 rounded-full animate-spin mb-4" />
+          <h2 className="text-cyan-400 font-bold tracking-[0.3em] uppercase text-sm animate-pulse">
+            Inicializando Sistema
+          </h2>
+          <span className="text-cyan-900 text-[10px] font-bold uppercase tracking-widest">
+            Estableciendo conexión segura...
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container bg-background">
