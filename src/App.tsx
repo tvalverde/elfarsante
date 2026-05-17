@@ -14,6 +14,7 @@ import { NeonModal } from './components/ui/NeonModal'
 import { CyberToast } from './components/ui/CyberToast'
 import { SystemMenu } from './components/SystemMenu'
 import { NeonButton } from './components/ui/NeonButton'
+import { ReloadPrompt } from './components/ui/ReloadPrompt'
 
 declare const __APP_VERSION__: string
 
@@ -162,6 +163,7 @@ function App() {
       </NeonModal>
 
       <CyberToast />
+      <ReloadPrompt />
     </div>
   )
 }
