@@ -10,7 +10,7 @@ declare const __APP_VERSION__: string
 type SystemView = 'menu' | 'instructions' | 'sync'
 
 export function SystemMenu() {
-  const { dispatch, syncStatus } = useGameState()
+  const { state, dispatch, syncStatus } = useGameState()
   const { showToast } = useToast()
   const { syncCode, linkDevice, unlinkDevice, syncUid } = useAuth()
 
@@ -18,7 +18,26 @@ export function SystemMenu() {
   const [syncInput, setSyncCodeInput] = useState('')
   const [isLinking, setIsLinking] = useState(false)
   const [showHardResetModal, setShowHardResetModal] = useState(false)
+  const [showAbortModal, setShowAbortModal] = useState(false)
   const [showLinkModal, setShowLinkModal] = useState(false)
+
+  const isTournamentActive = state.config.scoreLimit !== null
+
+  const handleAbortTournament = () => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    let config: Record<string, unknown> = {}
+    if (saved) {
+      try {
+        config = JSON.parse(saved)
+      } catch {
+        // ignore
+      }
+    }
+    config.scoreLimit = null
+    localStorage.setItem('elfarsante_draft_config', JSON.stringify(config))
+    dispatch({ type: 'UPDATE_CONFIG', payload: { scoreLimit: null } })
+    dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
+  }
 
   const handleLinkDevice = async () => {
     if (!syncInput) return
@@ -276,9 +295,23 @@ export function SystemMenu() {
         </span>
       </button>
 
+      {isTournamentActive && (
+        <button
+          onClick={() => setShowAbortModal(true)}
+          className="flex items-center justify-between w-full p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 hover:border-orange-500/60 hover:bg-orange-500/10 transition-all group mt-6"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-orange-400">cancel</span>
+            <span className="font-bold text-sm tracking-wider uppercase text-orange-400 group-hover:text-orange-300 transition-colors">
+              Abortar Torneo
+            </span>
+          </div>
+        </button>
+      )}
+
       <button
         onClick={() => setShowHardResetModal(true)}
-        className="flex items-center justify-between w-full p-4 rounded-xl bg-neon-red/5 border border-neon-red/20 hover:border-neon-red/60 hover:bg-neon-red/10 transition-all group mt-6"
+        className={`flex items-center justify-between w-full p-4 rounded-xl bg-neon-red/5 border border-neon-red/20 hover:border-neon-red/60 hover:bg-neon-red/10 transition-all group ${isTournamentActive ? 'mt-2' : 'mt-6'}`}
       >
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-neon-red">delete_forever</span>
@@ -320,6 +353,26 @@ export function SystemMenu() {
               SÍ, BORRAR TODO
             </NeonButton>
             <NeonButton variant="ghost" fullWidth onClick={() => setShowHardResetModal(false)}>
+              CANCELAR
+            </NeonButton>
+          </div>
+        </div>
+      </NeonModal>
+
+      <NeonModal
+        isOpen={showAbortModal}
+        onClose={() => setShowAbortModal(false)}
+        title="¿ABORTAR TORNEO?"
+      >
+        <div className="flex flex-col gap-6">
+          <p className="text-on-surface-variant">
+            ¿Estás seguro de que quieres cancelar el torneo en curso y volver al inicio?
+          </p>
+          <div className="flex flex-col gap-3">
+            <NeonButton variant="danger" fullWidth onClick={handleAbortTournament}>
+              SÍ, ABORTAR
+            </NeonButton>
+            <NeonButton variant="ghost" fullWidth onClick={() => setShowAbortModal(false)}>
               CANCELAR
             </NeonButton>
           </div>

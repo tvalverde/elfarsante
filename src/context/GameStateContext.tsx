@@ -101,6 +101,8 @@ type Action =
   | { type: 'ACCUSE_PLAYER'; payload: { accusedId: string } }
   | { type: 'END_DEBATE'; payload: { remainingTime: number } }
   | { type: 'FORCE_VOTING'; payload: { remainingTime: number } }
+  | { type: 'NEW_ROUND'; payload: { players: Player[]; round: RoundData } }
+  | { type: 'UPDATE_CONFIG'; payload: Partial<GameConfig> }
   | { type: 'HARD_RESET' }
   | { type: 'LOAD_STATE'; payload: GameState }
   | { type: 'CLEAR_CATEGORY_WORDS'; payload: string }
@@ -177,6 +179,20 @@ export function gameReducer(state: GameState, action: Action): GameState {
       newState = {
         ...state,
         players: action.payload,
+      }
+      break
+    case 'NEW_ROUND':
+      newState = {
+        ...state,
+        players: action.payload.players,
+        round: action.payload.round,
+        currentPhase: 'REPARTO',
+      }
+      break
+    case 'UPDATE_CONFIG':
+      newState = {
+        ...state,
+        config: { ...state.config, ...action.payload },
       }
       break
     case 'RESET_SCORES':

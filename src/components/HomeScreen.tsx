@@ -3,23 +3,11 @@ import { CyberInput } from './ui/CyberInput'
 import { PillTag } from './ui/PillTag'
 import { NeonButton } from './ui/NeonButton'
 import { NeonModal } from './ui/NeonModal'
-import { useGameState, type Player } from '../context/GameStateContext'
-import { WORD_LISTS, CATEGORY_LABELS } from '../data/dictionary'
+import { useGameState } from '../context/GameStateContext'
+import { CATEGORY_LABELS, AVAILABLE_CATEGORIES } from '../data/dictionary'
+import { generateNewRound } from '../utils/gameLogic'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-
-const AVAILABLE_CATEGORIES = [
-  'aleatorio',
-  'comida_bebida',
-  'animales',
-  'deportes',
-  'lugares',
-  'objetos_casa',
-  'summer',
-  'fashion',
-  'christmas',
-  'profesiones',
-]
 
 function loadDraftConfig() {
   if (typeof window === 'undefined') return null
@@ -224,88 +212,33 @@ export function HomeScreen() {
       return
     }
 
-    // Role selection logic
-    const farsanteIndices: number[] = []
-    const allIndices = validPlayers.map((_, i) => i)
-
-    if (validPlayers.length === 3 && farsantesCount === 1) {
-      // Weighted randomness for 3 players to reduce (but not eliminate) consecutive repeats
-      const previousFarsanteNames = state.players
-        .filter((p) => p.role === 'farsante')
-        .map((p) => p.name)
-
-      const ticketPool: number[] = []
-      allIndices.forEach((idx) => {
-        const isPrevious = previousFarsanteNames.includes(validPlayers[idx])
-        const tickets = isPrevious ? 1 : 4 // 1 ticket for the repeater, 4 for the fresh ones
-        for (let i = 0; i < tickets; i++) ticketPool.push(idx)
-      })
-
-      const selectedIdx = ticketPool[Math.floor(Math.random() * ticketPool.length)]
-      farsanteIndices.push(selectedIdx)
-    } else {
-      // Pure randomness for > 3 players or multiple farsantes
-      while (farsanteIndices.length < farsantesCount) {
-        const idx = Math.floor(Math.random() * validPlayers.length)
-        if (!farsanteIndices.includes(idx)) {
-          farsanteIndices.push(idx)
-        }
-      }
-    }
-
-    const gamePlayers: Player[] = validPlayers.map((name, index) => {
-      const existingPlayer = state.players.find((p) => p.name === name)
-      const isFarsante = farsanteIndices.includes(index)
-      // Only reset scores if explicitly requested via the warning modal (forceReset)
-      const shouldResetScore = forceReset
-      return {
-        id: existingPlayer ? existingPlayer.id : `p-${index}-${Date.now()}`,
-        name,
-        score: existingPlayer && !shouldResetScore ? existingPlayer.score : 0,
-        farsanteCount: (existingPlayer ? existingPlayer.farsanteCount : 0) + (isFarsante ? 1 : 0),
-        wronglyEliminatedCount: existingPlayer ? existingPlayer.wronglyEliminatedCount : 0,
-        roundsSurvivedCount: existingPlayer ? existingPlayer.roundsSurvivedCount : 0,
-        farsanteWinsCount: existingPlayer ? existingPlayer.farsanteWinsCount : 0,
-        isAlive: true,
-        role: isFarsante ? 'farsante' : 'normal',
-      }
+    const { newPlayers, newRound, exhaustedCategory } = generateNewRound({
+      currentPlayers: state.players,
+      validPlayerNames: validPlayers,
+      config: {
+        selectedCategories,
+        timerDuration,
+        farsantesCount,
+        penaltyOnFail,
+        scoreLimit,
+        blindTimer,
+      },
+      usedWords: state.usedWords,
+      forceResetScores: forceReset,
     })
 
-    // Select random word based on selected categories
-    let chosenCat: string
-    if (selectedCategories.includes('aleatorio')) {
-      const realCategories = AVAILABLE_CATEGORIES.filter((c) => c !== 'aleatorio')
-      chosenCat = realCategories[Math.floor(Math.random() * realCategories.length)]
-    } else {
-      chosenCat = selectedCategories[Math.floor(Math.random() * selectedCategories.length)]
+    if (exhaustedCategory) {
+      dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: exhaustedCategory })
+      showToast(
+        `Palabras de ${CATEGORY_LABELS[exhaustedCategory as keyof typeof CATEGORY_LABELS]} agotadas. Empezando de nuevo.`,
+        'info',
+      )
     }
-
-    const fullWordList = WORD_LISTS[chosenCat] || []
-    const usedWords = state.usedWords[chosenCat] || []
-    let filteredWords = fullWordList.filter((w) => !usedWords.includes(w))
-
-    if (filteredWords.length === 0 && fullWordList.length > 0) {
-      // Agotadas: Resetear historial de esa categoría y avisar
-      dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: chosenCat })
-      showToast(`Palabras de ${CATEGORY_LABELS[chosenCat]} agotadas. Empezando de nuevo.`, 'info')
-      filteredWords = fullWordList
-    }
-
-    let chosenWord: string
-    if (filteredWords.length > 0) {
-      chosenWord = filteredWords[Math.floor(Math.random() * filteredWords.length)]
-    } else {
-      // Fallback extremo si por algún motivo la lista está vacía
-      chosenCat = 'animales'
-      chosenWord = 'León'
-    }
-
-    const startingPlayerId = gamePlayers[Math.floor(Math.random() * gamePlayers.length)].id
 
     dispatch({
       type: 'START_GAME',
       payload: {
-        players: gamePlayers,
+        players: newPlayers,
         config: {
           timerDuration,
           selectedCategories,
@@ -314,16 +247,7 @@ export function HomeScreen() {
           scoreLimit,
           blindTimer,
         },
-        round: {
-          word: chosenWord,
-          category: chosenCat,
-          farsanteIds: gamePlayers.filter((p) => p.role === 'farsante').map((p) => p.id),
-          remainingTime: timerDuration,
-          accusedId: null,
-          currentPlayerIndex: 0,
-          startingPlayerId,
-          hasShownStartNotice: false,
-        },
+        round: newRound,
       },
     })
   }

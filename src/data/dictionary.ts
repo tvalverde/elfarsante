@@ -15,6 +15,19 @@ export const CATEGORY_LABELS: Record<string, string> = {
   christmas: 'Navidad',
 }
 
+export const AVAILABLE_CATEGORIES = [
+  'aleatorio',
+  'comida_bebida',
+  'animales',
+  'deportes',
+  'lugares',
+  'objetos_casa',
+  'summer',
+  'fashion',
+  'christmas',
+  'profesiones',
+]
+
 export const WORD_LISTS: CategoryLists = {
   profesiones: [
     'Abogado',

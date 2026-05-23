@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { useGameState } from '../context/GameStateContext'
+import { CATEGORY_LABELS } from '../data/dictionary'
+import { generateNewRound } from '../utils/gameLogic'
+import { useToast } from '../context/ToastContext'
 import { NeonButton } from './ui/NeonButton'
 import { NeonModal } from './ui/NeonModal'
 
 export function ScoreScreen() {
   const { state, dispatch } = useGameState()
+  const { showToast } = useToast()
   const [showResetModal, setShowResetModal] = useState(false)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
+  const [showAbortModal, setShowAbortModal] = useState(false)
 
   const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score)
   const highestScore = sortedPlayers[0]?.score || 0
@@ -16,6 +21,28 @@ export function ScoreScreen() {
   const handleNextRound = () => {
     if (isTournamentOver) {
       setShowVictoryModal(true)
+    } else if (state.config.scoreLimit !== null) {
+      // In tournament mode, skip HOME and jump directly to REPARTO
+      const { newPlayers, newRound, exhaustedCategory } = generateNewRound({
+        currentPlayers: state.players,
+        validPlayerNames: [],
+        config: state.config,
+        usedWords: state.usedWords,
+        forceResetScores: false,
+      })
+
+      if (exhaustedCategory) {
+        dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: exhaustedCategory })
+        showToast(
+          `Palabras de ${CATEGORY_LABELS[exhaustedCategory as keyof typeof CATEGORY_LABELS]} agotadas. Empezando de nuevo.`,
+          'info',
+        )
+      }
+
+      dispatch({
+        type: 'NEW_ROUND',
+        payload: { players: newPlayers, round: newRound },
+      })
     } else {
       dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
     }
@@ -33,6 +60,23 @@ export function ScoreScreen() {
     }
     config.scoreLimit = null
     localStorage.setItem('elfarsante_draft_config', JSON.stringify(config))
+    dispatch({ type: 'UPDATE_CONFIG', payload: { scoreLimit: null } })
+    dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
+  }
+
+  const handleAbortTournament = () => {
+    const saved = localStorage.getItem('elfarsante_draft_config')
+    let config: Record<string, unknown> = {}
+    if (saved) {
+      try {
+        config = JSON.parse(saved)
+      } catch {
+        // ignore
+      }
+    }
+    config.scoreLimit = null
+    localStorage.setItem('elfarsante_draft_config', JSON.stringify(config))
+    dispatch({ type: 'UPDATE_CONFIG', payload: { scoreLimit: null } })
     dispatch({ type: 'NEXT_PHASE', payload: 'HOME' })
   }
 
@@ -167,7 +211,12 @@ export function ScoreScreen() {
           <NeonButton fullWidth onClick={handleNextRound}>
             {isTournamentOver ? 'FINALIZAR PARTIDA' : 'SIGUIENTE RONDA'}
           </NeonButton>
-          {!isTournamentOver && (
+          {!isTournamentOver && state.config.scoreLimit !== null && (
+            <NeonButton variant="ghost" fullWidth onClick={() => setShowAbortModal(true)}>
+              ABORTAR TORNEO
+            </NeonButton>
+          )}
+          {!isTournamentOver && state.config.scoreLimit === null && (
             <button
               onClick={() => setShowResetModal(true)}
               className="text-outline-variant hover:text-error text-sm font-medium transition-colors py-2 uppercase tracking-tighter opacity-70 hover:opacity-100"
@@ -200,6 +249,26 @@ export function ScoreScreen() {
                 SÍ, REINICIAR
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={() => setShowResetModal(false)}>
+                CANCELAR
+              </NeonButton>
+            </div>
+          </div>
+        </NeonModal>
+
+        <NeonModal
+          isOpen={showAbortModal}
+          onClose={() => setShowAbortModal(false)}
+          title="¿ABORTAR TORNEO?"
+        >
+          <div className="flex flex-col gap-6">
+            <p className="text-on-surface-variant">
+              ¿Estás seguro de que quieres cancelar el torneo y volver a la configuración inicial?
+            </p>
+            <div className="flex flex-col gap-3">
+              <NeonButton variant="danger" fullWidth onClick={handleAbortTournament}>
+                SÍ, ABORTAR
+              </NeonButton>
+              <NeonButton variant="ghost" fullWidth onClick={() => setShowAbortModal(false)}>
                 CANCELAR
               </NeonButton>
             </div>
