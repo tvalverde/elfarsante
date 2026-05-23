@@ -360,7 +360,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         // We accept inconditionally because Firestore guarantees delivery order.
         if (currentState.currentPhase !== 'RESTORE_PROMPT') {
           // Legacy usedWords cleanup/migration
-          const cloudData = cloudState as Record<string, unknown>
+          const cloudData = cloudState as unknown as Record<string, unknown>
           if (cloudData.usedWords) {
             const legacyUsedWords = cloudData.usedWords as Record<string, string[]>
             delete cloudData.usedWords
