@@ -42,7 +42,7 @@ export function NeonButton({
   }
 
   return (
-    <button className={`${baseStyles} ${className}`} onClick={handleClick} {...props}>
+    <button className={`${baseStyles} ${className}`} onClick={handleClick} aria-disabled={props.disabled} {...props}>
       {children}
     </button>
   )

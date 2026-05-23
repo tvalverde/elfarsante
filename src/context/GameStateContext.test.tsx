@@ -40,8 +40,8 @@ describe('gameReducer', () => {
     localMutationCount: 0,
   }
 
-  it('should reset scores but keep players and stats on RESET_GAME', () => {
-    const action = { type: 'RESET_GAME' } as const
+  it('should reset scores but keep players and stats on RESET_SCORES', () => {
+    const action = { type: 'RESET_SCORES' } as const
     const newState = gameReducer(mockState, action)
 
     expect(newState.currentPhase).toBe('HOME')

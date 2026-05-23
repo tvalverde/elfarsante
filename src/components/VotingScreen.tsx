@@ -6,8 +6,7 @@ export function VotingScreen() {
   const alivePlayers = state.players.filter((p) => p.isAlive)
 
   const handleVote = (playerId: string) => {
-    dispatch({ type: 'UPDATE_ROUND', payload: { accusedId: playerId } })
-    dispatch({ type: 'NEXT_PHASE', payload: 'RESULTADO' })
+    dispatch({ type: 'ACCUSE_PLAYER', payload: { accusedId: playerId } })
   }
 
   return (

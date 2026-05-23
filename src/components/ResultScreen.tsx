@@ -87,7 +87,7 @@ export function ResultScreen() {
     if (farsanteGuessed) {
       const updatedPlayers = state.players.map((p) =>
         p.id === accused?.id
-          ? { ...p, score: p.score + 1, farsanteWinsCount: p.farsanteWinsCount + 1 }
+          ? { ...p, score: p.score + 1 }
           : p,
       )
       dispatch({ type: 'UPDATE_PLAYERS', payload: updatedPlayers })

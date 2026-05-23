@@ -193,7 +193,7 @@ export function ScoreScreen() {
                 variant="primary"
                 fullWidth
                 onClick={() => {
-                  dispatch({ type: 'RESET_GAME' })
+                  dispatch({ type: 'RESET_SCORES' })
                   setShowResetModal(false)
                 }}
               >
@@ -225,7 +225,7 @@ export function ScoreScreen() {
                 variant="primary"
                 fullWidth
                 onClick={() => {
-                  dispatch({ type: 'RESET_GAME' })
+                  dispatch({ type: 'RESET_SCORES' })
                   setShowVictoryModal(false)
                 }}
               >

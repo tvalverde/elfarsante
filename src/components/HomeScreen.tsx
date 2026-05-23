@@ -21,6 +21,19 @@ const AVAILABLE_CATEGORIES = [
   'profesiones',
 ]
 
+function loadDraftConfig() {
+  if (typeof window === 'undefined') return null
+  const saved = localStorage.getItem('elfarsante_draft_config')
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
 export function HomeScreen() {
   const { state, dispatch } = useGameState()
   const { showToast } = useToast()
@@ -28,95 +41,50 @@ export function HomeScreen() {
   const lastStateUpdateRef = useRef(state.updatedAt)
   const lastUidRef = useRef(activeUid)
 
-  const [players, setPlayers] = useState<string[]>(() => {
+  const [players, setPlayers] = useState<{ id: string; name: string }[]>(() => {
+    const createPlayer = (name: string) => ({ id: Math.random().toString(36).substring(2, 9), name })
     const saved = localStorage.getItem('elfarsante_draft_players')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((p) => (typeof p === 'string' ? createPlayer(p) : { ...p, id: p.id || createPlayer(p.name).id }))
+        }
       } catch {
         // Silent fail for invalid JSON
       }
     }
-    // Pre-load names if returning from a previous game (even finished) and no draft exists
     if (state.players && state.players.length > 0) {
-      return state.players.map((p) => p.name)
+      return state.players.map((p) => createPlayer(p.name))
     }
     return []
   })
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.selectedCategories) return parsed.selectedCategories
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.selectedCategories
+    const draft = loadDraftConfig()
+    return draft?.selectedCategories ?? state.config.selectedCategories
   })
   const [showSettings, setShowSettings] = useState(false)
   const [showTournamentWarning, setShowTournamentWarning] = useState(false)
   const [timerDuration, setTimerDuration] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.timerDuration) return parsed.timerDuration
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.timerDuration
+    const draft = loadDraftConfig()
+    return draft?.timerDuration ?? state.config.timerDuration
   })
   const [farsantesCount, setFarsantesCount] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.farsantesCount) return parsed.farsantesCount
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.farsantesCount
+    const draft = loadDraftConfig()
+    return draft?.farsantesCount ?? state.config.farsantesCount
   })
   const [penaltyOnFail, setPenaltyOnFail] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.penaltyOnFail !== undefined) return parsed.penaltyOnFail
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.penaltyOnFail
+    const draft = loadDraftConfig()
+    return draft?.penaltyOnFail ?? state.config.penaltyOnFail
   })
   const [scoreLimit, setScoreLimit] = useState<number | null>(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.scoreLimit !== undefined) return parsed.scoreLimit
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.scoreLimit
+    const draft = loadDraftConfig()
+    return draft?.scoreLimit !== undefined ? draft.scoreLimit : state.config.scoreLimit
   })
   const [blindTimer, setBlindTimer] = useState(() => {
-    const saved = localStorage.getItem('elfarsante_draft_config')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (parsed.blindTimer !== undefined) return parsed.blindTimer
-      } catch {
-        // Silent fail for invalid JSON
-      }
-    }
-    return state.config.blindTimer
+    const draft = loadDraftConfig()
+    return draft?.blindTimer ?? state.config.blindTimer
   })
 
   useEffect(() => {
@@ -134,7 +102,7 @@ export function HomeScreen() {
   }, [selectedCategories, timerDuration, farsantesCount, penaltyOnFail, scoreLimit, blindTimer])
 
   useEffect(() => {
-    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players))
+    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players.map(p => p.name)))
   }, [players])
 
   // Detect when the state has been updated from the cloud (typically after a link/unlink or external change)
@@ -150,7 +118,7 @@ export function HomeScreen() {
       // Only override if the new state has actual player data to avoid wiping current draft with a fresh state
       if (state.players && state.players.length > 0) {
         /* eslint-disable react-hooks/set-state-in-effect */
-        setPlayers(state.players.map((p) => p.name))
+        setPlayers(state.players.map((p) => ({ id: Math.random().toString(36).substring(2, 9), name: p.name })))
         setSelectedCategories(state.config.selectedCategories)
         setTimerDuration(state.config.timerDuration)
         setFarsantesCount(state.config.farsantesCount)
@@ -167,12 +135,12 @@ export function HomeScreen() {
   }, [state, activeUid])
 
   const handleAddPlayer = () => {
-    setPlayers([...players, ''])
+    setPlayers([...players, { id: Math.random().toString(36).substring(2, 9), name: '' }])
   }
 
   const handlePlayerChange = (index: number, value: string) => {
     const newPlayers = [...players]
-    newPlayers[index] = value
+    newPlayers[index].name = value
     setPlayers(newPlayers)
   }
 
@@ -197,7 +165,7 @@ export function HomeScreen() {
   }
 
   const handleStartGame = (forceReset = false) => {
-    const validPlayers = players.filter((p) => p.trim() !== '')
+    const validPlayers = players.filter((p) => p.name.trim() !== '').map((p) => p.name)
 
     // Evaluate if we are starting a NEW tournament and need to warn the user
     const currentScores = validPlayers.map((name) => {
@@ -378,8 +346,8 @@ export function HomeScreen() {
           <div className="flex flex-col gap-3">
             {players.map((player, index) => (
               <CyberInput
-                key={index}
-                value={player}
+                key={player.id}
+                value={player.name}
                 onChange={(e) => handlePlayerChange(index, e.target.value)}
                 onRemove={() => handleRemovePlayer(index)}
                 placeholder="Nombre (máx. 15)"

@@ -132,6 +132,7 @@ function App() {
       <NeonModal
         isOpen={!!pendingLinkRequest}
         onClose={() => {}} // Force decision, no easy close
+        hideCloseButton={true}
         title="⚠️ NUEVA VINCULACIÓN"
       >
         <div className="flex flex-col gap-6">

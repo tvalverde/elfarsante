@@ -6,7 +6,7 @@ export function CyberToast() {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed bottom-32 left-0 right-0 z-[100] flex flex-col items-center gap-3 px-6 pointer-events-none">
+    <div role="status" aria-live="polite" className="fixed bottom-32 left-0 right-0 z-[100] flex flex-col items-center gap-3 px-6 pointer-events-none">
       {toasts.map((toast) => (
         <ToastItem
           key={toast.id}

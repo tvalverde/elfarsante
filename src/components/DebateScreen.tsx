@@ -13,8 +13,7 @@ export function DebateScreen() {
 
   const handleTimeUp = useCallback(() => {
     showToast('¡TIEMPO AGOTADO! Votación forzada.', 'error')
-    dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: 0 } })
-    dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' })
+    dispatch({ type: 'FORCE_VOTING', payload: { remainingTime: 0 } })
   }, [dispatch, showToast])
 
   const {
@@ -46,8 +45,7 @@ export function DebateScreen() {
 
   const handleAcusar = () => {
     pauseTimer()
-    dispatch({ type: 'UPDATE_ROUND', payload: { remainingTime: timerSeconds } })
-    dispatch({ type: 'NEXT_PHASE', payload: 'VOTACION' })
+    dispatch({ type: 'END_DEBATE', payload: { remainingTime: timerSeconds } })
   }
 
   const isUrgent = timerSeconds <= 30

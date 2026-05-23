@@ -97,7 +97,10 @@ type Action =
   | { type: 'NEXT_PLAYER' }
   | { type: 'UPDATE_ROUND'; payload: Partial<RoundData> }
   | { type: 'UPDATE_PLAYERS'; payload: Player[] }
-  | { type: 'RESET_GAME' }
+  | { type: 'RESET_SCORES' }
+  | { type: 'ACCUSE_PLAYER'; payload: { accusedId: string } }
+  | { type: 'END_DEBATE'; payload: { remainingTime: number } }
+  | { type: 'FORCE_VOTING'; payload: { remainingTime: number } }
   | { type: 'HARD_RESET' }
   | { type: 'LOAD_STATE'; payload: GameState }
   | { type: 'CLEAR_CATEGORY_WORDS'; payload: string }
@@ -149,13 +152,34 @@ export function gameReducer(state: GameState, action: Action): GameState {
         round: { ...state.round, ...action.payload },
       }
       break
+    case 'ACCUSE_PLAYER':
+      newState = {
+        ...state,
+        round: { ...state.round, accusedId: action.payload.accusedId },
+        currentPhase: 'RESULTADO',
+      }
+      break
+    case 'END_DEBATE':
+      newState = {
+        ...state,
+        round: { ...state.round, remainingTime: action.payload.remainingTime },
+        currentPhase: 'VOTACION',
+      }
+      break
+    case 'FORCE_VOTING':
+      newState = {
+        ...state,
+        round: { ...state.round, remainingTime: action.payload.remainingTime },
+        currentPhase: 'VOTACION',
+      }
+      break
     case 'UPDATE_PLAYERS':
       newState = {
         ...state,
         players: action.payload,
       }
       break
-    case 'RESET_GAME':
+    case 'RESET_SCORES':
       newState = {
         ...state,
         currentPhase: 'HOME',
