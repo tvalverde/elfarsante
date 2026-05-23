@@ -15,6 +15,16 @@ vi.mock('../hooks/useSFX', () => ({
   }),
 }))
 
+// Mock I18n hook
+vi.mock('../i18n/I18nContext', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      if (key === 'distribution.next_player') return 'Siguiente Jugador'
+      return key
+    },
+  }),
+}))
+
 describe('DistributionScreen Layout (Sticky Bottom Regression)', () => {
   const mockState = {
     players: [
@@ -59,6 +69,7 @@ describe('DistributionScreen Layout (Sticky Bottom Regression)', () => {
       penaltyOnFail: false,
       scoreLimit: null,
       blindTimer: false,
+      language: 'es' as const,
     },
     usedWords: {},
     updatedAt: 0,

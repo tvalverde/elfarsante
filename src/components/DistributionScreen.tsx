@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react'
 import { useGameState } from '../context/GameStateContext'
 import { useSFX } from '../hooks/useSFX'
+import { useTranslation } from '../i18n/I18nContext'
 
 export function DistributionScreen() {
   const { state, dispatch } = useGameState()
   const { playTick } = useSFX()
+  const { t } = useTranslation()
   const [isRevealed, setIsRevealed] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -35,11 +37,11 @@ export function DistributionScreen() {
       {/* Top Text Content */}
       <div className="text-center w-full flex flex-col gap-1 items-center mt-2">
         <h2 className="font-h1 text-[32px] font-black text-primary-container drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] uppercase tracking-wider leading-tight">
-          Turno de <br />
+          {t('distribution.turn_of')} <br />
           <span className="text-white">{currentPlayer.name}</span>
         </h2>
         <p className="font-body-md text-secondary max-w-xs mx-auto text-xs opacity-80">
-          Asegúrate de que nadie más mire la pantalla
+          {t('distribution.make_sure_no_one_looks')}
         </p>
       </div>
 
@@ -59,17 +61,21 @@ export function DistributionScreen() {
 
         {isRevealed ? (
           <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-200">
-            <h3 className="font-h2 text-h2 text-primary-container">Tu rol:</h3>
+            <h3 className="font-h2 text-h2 text-primary-container">
+              {t('distribution.your_role')}
+            </h3>
             <p className="font-h1 text-[36px] font-black text-white drop-shadow-[0_0_15px_rgba(0,229,255,0.8)] text-center leading-tight">
-              {currentPlayer.role === 'farsante' ? 'ERES EL FARSANTE' : state.round.word}
+              {currentPlayer.role === 'farsante'
+                ? t('distribution.you_are_farsante')
+                : state.round.word}
             </p>
             <div className="flex flex-col items-center gap-1 mt-2">
               <p className="font-body-md text-on-surface-variant text-center">
-                Categoría: {state.round.category}
+                {t('distribution.category', { category: t(`categories.${state.round.category}`) })}
               </p>
               {currentPlayer.role === 'farsante' && (
                 <p className="font-body-sm text-secondary text-center opacity-80 italic">
-                  Intenta pasar desapercibido.
+                  {t('distribution.try_unnoticed')}
                 </p>
               )}
             </div>
@@ -92,7 +98,7 @@ export function DistributionScreen() {
               keyboard_double_arrow_up
             </span>
             <p className="font-body-md text-body-md text-on-surface text-center px-4 leading-tight">
-              Mantén presionado para revelar
+              {t('distribution.press_to_reveal')}
             </p>
           </div>
         )}
@@ -110,7 +116,7 @@ export function DistributionScreen() {
             onClick={handleNext}
             className="w-full py-4 border-2 border-primary-container text-primary-container font-label-pill text-label-pill rounded-full hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] hover:bg-primary-container/10 transition-all duration-300 uppercase tracking-wider active:scale-[0.98]"
           >
-            {isLastPlayer ? 'Empezar Debate' : 'Siguiente Jugador'}
+            {isLastPlayer ? t('distribution.start_debate') : t('distribution.next_player')}
           </button>
         </div>
       </div>

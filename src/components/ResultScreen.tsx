@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useGameState } from '../context/GameStateContext'
 import { useSFX } from '../hooks/useSFX'
+import { useTranslation } from '../i18n/I18nContext'
 
 export function ResultScreen() {
   const { state, dispatch } = useGameState()
   const { playSuccess, playFail } = useSFX()
+  const { t } = useTranslation()
   const [isProcessing, setIsProcessing] = useState(true)
 
   const accused = state.players.find((p) => p.id === state.round.accusedId)
@@ -109,7 +111,7 @@ export function ResultScreen() {
     return (
       <div className="flex flex-col items-center justify-center flex-grow w-full">
         <h2 className="font-h1 text-[40px] animate-pulse text-primary-container drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] uppercase tracking-widest text-center px-4">
-          Analizando...
+          {t('result.analyzing')}
         </h2>
       </div>
     )
@@ -122,10 +124,10 @@ export function ResultScreen() {
   const icon = isFarsante ? 'check_circle' : 'cancel'
 
   const resultMessage = isFarsante
-    ? 'El grupo ha deducido correctamente. Pero espera...'
+    ? t('result.farsante_caught_wait')
     : isGameOverByNumber
-      ? '¡Victoria de los Farsantes! Han logrado superar en número a los inocentes.'
-      : 'Se ha eliminado a un inocente. La tensión aumenta.'
+      ? t('result.farsante_win_numbers')
+      : t('result.innocent_eliminated')
 
   const trueFarsantesNames = state.players
     .filter((p) => state.round.farsanteIds.includes(p.id))
@@ -149,7 +151,9 @@ export function ResultScreen() {
       <h2
         className={`font-h1 text-[36px] mb-unit uppercase leading-tight ${textColor} ${glowClass}`}
       >
-        {isFarsante ? `¡${accused?.name} ERA EL FARSANTE!` : `¡${accused?.name} ERA INOCENTE!`}
+        {isFarsante
+          ? t('result.was_farsante', { name: accused?.name ?? '' })
+          : t('result.was_innocent', { name: accused?.name ?? '' })}
       </h2>
 
       <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mt-4">
@@ -159,8 +163,8 @@ export function ResultScreen() {
       {!isFarsante && isGameOverByNumber && (
         <p className="font-bold text-lg mt-6 animate-in fade-in zoom-in duration-500 text-on-surface">
           {state.round.farsanteIds.length > 1
-            ? 'Los verdaderos farsantes eran: '
-            : 'El verdadero farsante era: '}
+            ? t('result.true_farsantes_plural')
+            : t('result.true_farsantes_singular')}
           <span className="text-neon-red">{trueFarsantesNames}</span>
         </p>
       )}
@@ -168,19 +172,19 @@ export function ResultScreen() {
       {isFarsante ? (
         <div className="w-full max-w-sm mt-12 flex flex-col gap-4">
           <p className="text-primary-container font-bold uppercase tracking-widest text-sm mb-2">
-            ¿Ha adivinado la palabra secreta?
+            {t('result.guessed_secret_word')}
           </p>
           <button
             onClick={() => handleFinishRound(true)}
             className="w-full py-4 bg-primary-container/10 border-2 border-primary-container text-primary-container font-bold rounded-full hover:bg-primary-container hover:text-background transition-all uppercase tracking-wider active:scale-[0.98] hover:shadow-[0_0_15px_rgba(0,229,255,0.4)]"
           >
-            SÍ, LA HA ADIVINADO (+1pt)
+            {t('result.yes_guessed')}
           </button>
           <button
             onClick={() => handleFinishRound(false)}
             className="w-full py-4 border border-outline-variant text-outline rounded-full hover:text-on-surface hover:border-on-surface transition-all uppercase tracking-wider active:scale-[0.98]"
           >
-            NO, HA FALLADO
+            {t('result.no_failed')}
           </button>
         </div>
       ) : (
@@ -188,7 +192,7 @@ export function ResultScreen() {
           onClick={handleNext}
           className="w-full max-w-sm mt-12 py-4 border border-outline-variant text-on-surface font-label-pill text-label-pill rounded-full hover:border-primary-container hover:text-primary-container hover:bg-primary-container/5 transition-all uppercase tracking-wider active:scale-[0.98]"
         >
-          {isGameOverByNumber ? 'Ver Puntuaciones' : 'Continuar'}
+          {isGameOverByNumber ? t('result.view_scores') : t('result.continue')}
         </button>
       )}
     </div>

@@ -47,6 +47,7 @@ export interface GameConfig {
   penaltyOnFail: boolean
   scoreLimit: number | null
   blindTimer: boolean
+  language: 'es' | 'en' | 'ca'
 }
 
 export interface RoundData {
@@ -83,6 +84,7 @@ const initialState: GameState = {
     penaltyOnFail: false,
     scoreLimit: null,
     blindTimer: false,
+    language: 'es',
   },
   round: {
     word: '',

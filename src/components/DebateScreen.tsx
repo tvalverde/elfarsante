@@ -1,20 +1,22 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useGameState } from '../context/GameStateContext'
 import { useTimer } from '../hooks/useTimer'
-import { CATEGORY_LABELS } from '../data/dictionary'
+
 import { useToast } from '../context/ToastContext'
+import { useTranslation } from '../i18n/I18nContext'
 
 export function DebateScreen() {
   const { state, dispatch } = useGameState()
   const { showToast } = useToast()
+  const { t } = useTranslation()
   // Capture initial state on mount to prevent instant hide on global state update
   const [shouldShowOverlay] = useState(!state.round.hasShownStartNotice)
   const [showStartNotice, setShowStartNotice] = useState(shouldShowOverlay)
 
   const handleTimeUp = useCallback(() => {
-    showToast('¡TIEMPO AGOTADO! Votación forzada.', 'error')
+    showToast(t('debate.time_up'), 'error')
     dispatch({ type: 'FORCE_VOTING', payload: { remainingTime: 0 } })
-  }, [dispatch, showToast])
+  }, [dispatch, showToast, t])
 
   const {
     play: playTimer,
@@ -67,7 +69,7 @@ export function DebateScreen() {
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-500"></div>
           <div className="relative bg-surface-container-high border-2 border-primary-container p-8 rounded-2xl shadow-[0_0_50px_rgba(0,229,255,0.3)] text-center animate-in zoom-in fade-in slide-in-from-bottom-8 duration-500 fill-mode-forwards">
             <p className="text-primary-container font-label-pill uppercase tracking-widest mb-2">
-              Comienza el debate
+              {t('debate.debate_starts')}
             </p>
             <h2 className="font-h1 text-4xl text-white uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
               {startingPlayer.name}
@@ -83,7 +85,9 @@ export function DebateScreen() {
 
       {/* Category Header */}
       <section className="flex flex-col items-center gap-unit w-full">
-        <p className="font-body-md text-body-md text-on-surface-variant">Categorías activas:</p>
+        <p className="font-body-md text-body-md text-on-surface-variant">
+          {t('debate.active_categories')}
+        </p>
         <div className="flex flex-wrap justify-center gap-2">
           {state.config.selectedCategories.map((cat) => (
             <div
@@ -91,7 +95,7 @@ export function DebateScreen() {
               className="px-4 py-2 border border-primary-container rounded-full bg-primary-container/10 flex items-center gap-2 neon-glow-cyan"
             >
               <span className="font-label-pill text-label-pill text-on-background">
-                {CATEGORY_LABELS[cat] || cat}
+                {t(`categories.${cat}`)}
               </span>
             </div>
           ))}
@@ -160,7 +164,7 @@ export function DebateScreen() {
                   </span>
                   {isStarting && (
                     <span className="text-[10px] text-primary-container font-label-pill uppercase tracking-widest animate-pulse">
-                      ¡Empieza!
+                      {t('debate.starts')}
                     </span>
                   )}
                 </div>
@@ -188,7 +192,7 @@ export function DebateScreen() {
             onClick={handleAcusar}
             className="w-full bg-neon-red text-white font-h2 text-h2 py-6 rounded-full flex items-center justify-center gap-3 transition-all active:scale-[0.98] uppercase tracking-wide hover:shadow-[0_0_20px_rgba(255,42,95,0.4)] active:shadow-[0_0_30px_rgba(255,42,95,0.6)]"
           >
-            <span>DETENER Y ACUSAR</span>
+            <span>{t('debate.stop_and_accuse')}</span>
             <span
               className="material-symbols-outlined text-3xl"
               style={{ fontVariationSettings: "'FILL' 1" }}

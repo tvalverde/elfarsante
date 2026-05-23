@@ -4,11 +4,11 @@ import { PillTag } from './ui/PillTag'
 import { NeonButton } from './ui/NeonButton'
 import { NeonModal } from './ui/NeonModal'
 import { useGameState } from '../context/GameStateContext'
-import { CATEGORY_LABELS, AVAILABLE_CATEGORIES } from '../data/dictionary'
+import { AVAILABLE_CATEGORIES } from '../data/dictionary'
 import { generateNewRound } from '../utils/gameLogic'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-
+import { useTranslation } from '../i18n/I18nContext'
 function loadDraftConfig() {
   if (typeof window === 'undefined') return null
   const saved = localStorage.getItem('elfarsante_draft_config')
@@ -23,6 +23,7 @@ function loadDraftConfig() {
 }
 
 export function HomeScreen() {
+  const { t } = useTranslation()
   const { state, dispatch } = useGameState()
   const { showToast } = useToast()
   const { activeUid } = useAuth()
@@ -162,7 +163,7 @@ export function HomeScreen() {
     }
   }
 
-  const handleStartGame = (forceReset = false) => {
+  const handleStartGame = async (forceReset = false) => {
     const validPlayers = players.filter((p) => p.name.trim() !== '').map((p) => p.name)
 
     // Evaluate if we are starting a NEW tournament and need to warn the user
@@ -207,22 +208,24 @@ export function HomeScreen() {
     }
 
     if (validPlayers.length < 3) {
-      showToast('Se necesitan al menos 3 jugadores.', 'error')
+      showToast(t('home.error_min_players'), 'error')
       return
     }
 
     const uniquePlayers = new Set(validPlayers)
     if (uniquePlayers.size !== validPlayers.length) {
-      showToast('Los nombres de los jugadores deben ser únicos.', 'error')
+      showToast(t('home.error_unique_names'), 'error')
       return
     }
 
     if (farsantesCount > 1 && validPlayers.length < 5) {
-      showToast('Para jugar con 2 farsantes, se necesitan al menos 5 jugadores.', 'error')
+      showToast(t('home.error_farsantes_min_players'), 'error')
       return
     }
 
-    const { newPlayers, newRound, exhaustedCategory } = generateNewRound({
+    const langToUse = (localStorage.getItem('elfarsante_lang') as 'es' | 'en' | 'ca') || 'es'
+
+    const { newPlayers, newRound, exhaustedCategory } = await generateNewRound({
       currentPlayers: state.players,
       validPlayerNames: validPlayers,
       config: {
@@ -232,6 +235,7 @@ export function HomeScreen() {
         penaltyOnFail,
         scoreLimit,
         blindTimer,
+        language: langToUse,
       },
       usedWords: state.usedWords,
       forceResetScores: forceReset,
@@ -240,7 +244,9 @@ export function HomeScreen() {
     if (exhaustedCategory) {
       dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: exhaustedCategory })
       showToast(
-        `Palabras de ${CATEGORY_LABELS[exhaustedCategory as keyof typeof CATEGORY_LABELS]} agotadas. Empezando de nuevo.`,
+        t('home.toast_words_exhausted', {
+          category: t(`categories.${exhaustedCategory}`),
+        }),
         'info',
       )
     }
@@ -256,6 +262,7 @@ export function HomeScreen() {
           penaltyOnFail,
           scoreLimit,
           blindTimer,
+          language: langToUse,
         },
         round: newRound,
       },
@@ -267,13 +274,13 @@ export function HomeScreen() {
       {/* Players Panel */}
       <section className="w-full flex flex-col gap-element-gap">
         <div className="flex justify-between items-end mb-2">
-          <h2 className="font-h2 text-h2 text-on-surface">Jugadores</h2>
+          <h2 className="font-h2 text-h2 text-on-surface">{t('home.players_title')}</h2>
           <button
             onClick={() => dispatch({ type: 'NEXT_PHASE', payload: 'PUNTUACIONES' })}
             className="flex items-center gap-1 text-primary-container text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity"
           >
             <span className="material-symbols-outlined text-lg">emoji_events</span>
-            Marcadores
+            {t('home.scores_button')}
           </button>
         </div>
         <div className="bg-surface-container-high rounded-xl p-container-padding flex flex-col gap-element-gap border border-surface-bright">
@@ -284,7 +291,7 @@ export function HomeScreen() {
                 value={player.name}
                 onChange={(e) => handlePlayerChange(index, e.target.value)}
                 onRemove={() => handleRemovePlayer(index)}
-                placeholder="Nombre (máx. 15)"
+                placeholder={t('home.player_name_placeholder')}
                 maxLength={15}
               />
             ))}
@@ -295,21 +302,21 @@ export function HomeScreen() {
             className="mt-4 bg-surface-container/50 border border-outline-variant hover:bg-surface-container transition-colors"
           >
             <span className="material-symbols-outlined text-sm">add</span>
-            Añadir jugador
+            {t('home.add_player_button')}
           </NeonButton>
         </div>
       </section>
 
       {/* Game Mode Panel */}
       <section className="w-full flex flex-col gap-element-gap">
-        <h2 className="font-h2 text-h2 text-on-surface mb-2">Modo de Juego</h2>
+        <h2 className="font-h2 text-h2 text-on-surface mb-2">{t('home.game_mode_title')}</h2>
         <div className="grid grid-cols-2 gap-3">
           <NeonButton
             variant={scoreLimit === null ? 'primary' : 'ghost'}
             onClick={() => setScoreLimit(null)}
             className={scoreLimit === null ? '' : 'bg-surface-container/50 border-outline-variant'}
           >
-            PARTIDA LIBRE
+            {t('home.free_play_mode')}
           </NeonButton>
           <NeonButton
             variant={scoreLimit !== null ? 'primary' : 'ghost'}
@@ -318,7 +325,7 @@ export function HomeScreen() {
             }}
             className={scoreLimit !== null ? '' : 'bg-surface-container/50 border-outline-variant'}
           >
-            MODO TORNEO
+            {t('home.tournament_mode')}
           </NeonButton>
         </div>
 
@@ -326,29 +333,27 @@ export function HomeScreen() {
           <div className="animate-in fade-in slide-in-from-top-2 flex flex-col gap-3 p-4 bg-surface-container rounded-xl border border-outline-variant mt-2">
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
               <span className="font-semibold text-primary-container text-xs uppercase tracking-wider">
-                Meta de Puntos:
+                {t('home.score_limit_label')}
               </span>
               <select
                 value={scoreLimit}
                 onChange={(e) => setScoreLimit(Number(e.target.value))}
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
-                <option value={5}>A 5 Puntos</option>
-                <option value={10}>A 10 Puntos</option>
-                <option value={15}>A 15 Puntos</option>
-                <option value={20}>A 20 Puntos</option>
+                <option value={5}>{t('home.score_5')}</option>
+                <option value={10}>{t('home.score_10')}</option>
+                <option value={15}>{t('home.score_15')}</option>
+                <option value={20}>{t('home.score_20')}</option>
               </select>
             </label>
-            <p className="text-[10px] text-outline italic">
-              El primer jugador en alcanzar esta puntuación ganará el torneo.
-            </p>
+            <p className="text-[10px] text-outline italic">{t('home.tournament_description')}</p>
           </div>
         )}
       </section>
 
       {/* Categories Panel */}
       <section className="w-full flex flex-col gap-element-gap">
-        <h2 className="font-h2 text-h2 text-on-surface mb-2">Categorías</h2>
+        <h2 className="font-h2 text-h2 text-on-surface mb-2">{t('home.categories_title')}</h2>
         <div className="flex flex-wrap gap-3">
           {AVAILABLE_CATEGORIES.map((category) => {
             const icons: Record<string, string> = {
@@ -377,7 +382,7 @@ export function HomeScreen() {
                     : ''
                 }
               >
-                {CATEGORY_LABELS[category]}
+                {t(`categories.${category}`)}
               </PillTag>
             )
           })}
@@ -388,7 +393,7 @@ export function HomeScreen() {
           onClick={() => setShowSettings(!showSettings)}
           className="text-outline hover:text-primary-container transition-colors text-sm font-medium tracking-wide flex items-center justify-center gap-1 mx-auto"
         >
-          Opciones de Partida
+          {t('home.game_options_button')}
           <span
             className={`material-symbols-outlined text-xs transition-transform ${showSettings ? 'rotate-180' : ''}`}
           >
@@ -400,28 +405,32 @@ export function HomeScreen() {
           <div className="mt-4 p-6 w-full bg-surface-container rounded-xl border border-outline-variant animate-in fade-in slide-in-from-top-2 flex flex-col gap-6">
             {/* Setting 1: Tiempo */}
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
-              <span className="font-semibold text-primary-container">Tiempo por ronda:</span>
+              <span className="font-semibold text-primary-container">
+                {t('home.time_per_round_label')}
+              </span>
               <select
                 value={timerDuration / 60}
                 onChange={(e) => setTimerDuration(Number(e.target.value) * 60)}
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
-                <option value={3}>3 minutos</option>
-                <option value={5}>5 minutos</option>
-                <option value={10}>10 minutos</option>
+                <option value={3}>{t('home.time_3_min')}</option>
+                <option value={5}>{t('home.time_5_min')}</option>
+                <option value={10}>{t('home.time_10_min')}</option>
               </select>
             </label>
 
             {/* Setting 2: Farsantes */}
             <label className="flex flex-col gap-2 font-body-md text-on-surface">
-              <span className="font-semibold text-primary-container">Nº de Farsantes:</span>
+              <span className="font-semibold text-primary-container">
+                {t('home.farsantes_count_label')}
+              </span>
               <select
                 value={farsantesCount}
                 onChange={(e) => setFarsantesCount(Number(e.target.value))}
                 className="bg-surface-container-high border border-outline-variant text-on-surface p-3 rounded-lg focus:border-primary-container focus:ring-0 outline-none w-full"
               >
-                <option value={1}>1 Farsante</option>
-                <option value={2}>2 Farsantes (Requiere 5+ jug.)</option>
+                <option value={1}>{t('home.farsantes_1')}</option>
+                <option value={2}>{t('home.farsantes_2')}</option>
               </select>
             </label>
 
@@ -446,9 +455,7 @@ export function HomeScreen() {
                   onChange={() => setPenaltyOnFail(!penaltyOnFail)}
                   className="hidden"
                 />
-                <span className="font-body-md text-on-surface">
-                  Penalización de tiempo (-60s por error)
-                </span>
+                <span className="font-body-md text-on-surface">{t('home.penalty_label')}</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer group">
@@ -470,9 +477,7 @@ export function HomeScreen() {
                   onChange={() => setBlindTimer(!blindTimer)}
                   className="hidden"
                 />
-                <span className="font-body-md text-on-surface">
-                  Cronómetro Oculto (Modo Hardcore)
-                </span>
+                <span className="font-body-md text-on-surface">{t('home.blind_timer_label')}</span>
               </label>
             </div>
           </div>
@@ -483,14 +488,17 @@ export function HomeScreen() {
       <NeonModal
         isOpen={showTournamentWarning}
         onClose={() => setShowTournamentWarning(false)}
-        title="NUEVO TORNEO"
+        title={t('home.tournament_warning_title')}
       >
         <div className="flex flex-col gap-6">
           <p className="text-on-surface-variant">
-            Vas a iniciar un <span className="text-primary-container font-bold">Torneo</span>. Los
-            marcadores actuales se reiniciarán a cero.
+            {t('home.tournament_warning_p1')}
+            <span className="text-primary-container font-bold">
+              {t('home.tournament_warning_p1_bold')}
+            </span>
+            {t('home.tournament_warning_p1_end')}
           </p>
-          <p className="text-on-surface-variant font-bold">¿Quieres continuar?</p>
+          <p className="text-on-surface-variant font-bold">{t('home.tournament_warning_p2')}</p>
           <div className="flex flex-col gap-3">
             <NeonButton
               variant="primary"
@@ -500,10 +508,10 @@ export function HomeScreen() {
                 handleStartGame(true)
               }}
             >
-              SÍ, REINICIAR Y JUGAR
+              {t('home.tournament_warning_confirm')}
             </NeonButton>
             <NeonButton variant="ghost" fullWidth onClick={() => setShowTournamentWarning(false)}>
-              CANCELAR
+              {t('home.tournament_warning_cancel')}
             </NeonButton>
           </div>
         </div>
@@ -512,7 +520,7 @@ export function HomeScreen() {
       {/* Fixed bottom full-width button */}
       <div className="fixed bottom-0 left-0 w-full z-50 p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
         <NeonButton fullWidth onClick={() => handleStartGame()}>
-          ¡JUGAR!
+          {t('home.play_button')}
         </NeonButton>
       </div>
     </div>

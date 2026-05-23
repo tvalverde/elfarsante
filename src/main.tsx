@@ -6,14 +6,18 @@ import { GameStateProvider } from './context/GameStateContext.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 
+import { I18nProvider } from './i18n/I18nContext.tsx'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <GameStateProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </GameStateProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <GameStateProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </GameStateProvider>
+      </AuthProvider>
+    </I18nProvider>
   </StrictMode>,
 )

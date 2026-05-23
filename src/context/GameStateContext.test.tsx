@@ -24,6 +24,7 @@ describe('gameReducer', () => {
       penaltyOnFail: false,
       scoreLimit: null,
       blindTimer: false,
+      language: 'es' as const,
     },
     round: {
       word: 'Gato',

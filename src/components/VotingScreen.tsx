@@ -1,8 +1,10 @@
 import { useGameState } from '../context/GameStateContext'
 import { NeonButton } from './ui/NeonButton'
+import { useTranslation } from '../i18n/I18nContext'
 
 export function VotingScreen() {
   const { state, dispatch } = useGameState()
+  const { t } = useTranslation()
   const alivePlayers = state.players.filter((p) => p.isAlive)
 
   const handleVote = (playerId: string) => {
@@ -14,10 +16,10 @@ export function VotingScreen() {
       {/* Sticky Header */}
       <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md w-full pt-8 pb-6 px-container-padding border-b border-outline-variant/30 flex flex-col items-center">
         <h2 className="font-h1 text-h1 text-on-surface text-center uppercase tracking-widest text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
-          ¿Quién es el Farsante?
+          {t('voting.who_is_farsante')}
         </h2>
         <p className="font-body-md text-body-md text-outline mt-2 text-center">
-          Selecciona al jugador acusado
+          {t('voting.select_accused')}
         </p>
       </div>
 
@@ -43,7 +45,7 @@ export function VotingScreen() {
             className="text-outline hover:text-on-surface uppercase tracking-tighter"
           >
             <span className="material-symbols-outlined text-lg">undo</span>
-            CANCELAR ACUSACIÓN
+            {t('voting.cancel_accusation')}
           </NeonButton>
         </div>
       </div>

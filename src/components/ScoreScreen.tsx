@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { useGameState } from '../context/GameStateContext'
-import { CATEGORY_LABELS } from '../data/dictionary'
+
 import { generateNewRound } from '../utils/gameLogic'
 import { useToast } from '../context/ToastContext'
 import { NeonButton } from './ui/NeonButton'
 import { NeonModal } from './ui/NeonModal'
+import { useTranslation } from '../i18n/I18nContext'
 
 export function ScoreScreen() {
   const { state, dispatch } = useGameState()
   const { showToast } = useToast()
+  const { t } = useTranslation()
   const [showResetModal, setShowResetModal] = useState(false)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
   const [showAbortModal, setShowAbortModal] = useState(false)
@@ -18,12 +20,12 @@ export function ScoreScreen() {
   const isTournamentOver =
     state.config.scoreLimit !== null && highestScore >= state.config.scoreLimit
 
-  const handleNextRound = () => {
+  const handleNextRound = async () => {
     if (isTournamentOver) {
       setShowVictoryModal(true)
     } else if (state.config.scoreLimit !== null) {
       // In tournament mode, skip HOME and jump directly to REPARTO
-      const { newPlayers, newRound, exhaustedCategory } = generateNewRound({
+      const { newPlayers, newRound, exhaustedCategory } = await generateNewRound({
         currentPlayers: state.players,
         validPlayerNames: [],
         config: state.config,
@@ -34,7 +36,7 @@ export function ScoreScreen() {
       if (exhaustedCategory) {
         dispatch({ type: 'CLEAR_CATEGORY_WORDS', payload: exhaustedCategory })
         showToast(
-          `Palabras de ${CATEGORY_LABELS[exhaustedCategory as keyof typeof CATEGORY_LABELS]} agotadas. Empezando de nuevo.`,
+          t('home.toast_words_exhausted', { category: t(`categories.${exhaustedCategory}`) }),
           'info',
         )
       }
@@ -104,11 +106,11 @@ export function ScoreScreen() {
             emoji_events
           </span>
           <h2 className="font-h1 text-[32px] text-primary-container tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">
-            {isTournamentOver ? '¡CAMPEÓN!' : 'PUNTUACIONES'}
+            {isTournamentOver ? t('score.champion') : t('score.scores_title')}
           </h2>
         </div>
         <p className="font-body-md text-body-md text-outline mt-2 text-center">
-          {isTournamentOver ? 'La partida ha finalizado' : 'Clasificación Actual'}
+          {isTournamentOver ? t('score.game_over') : t('score.current_ranking')}
         </p>
       </section>
 
@@ -150,56 +152,64 @@ export function ScoreScreen() {
       <div className="w-full flex flex-col items-center gap-4">
         <div className="flex items-center gap-2 text-outline text-xs font-bold uppercase tracking-[0.2em] py-2">
           <span className="material-symbols-outlined text-sm">history_edu</span>
-          Historial de la infamia
+          {t('score.history_infamy')}
         </div>
 
         <div className="grid grid-cols-2 gap-3 w-full">
           {/* Card 1: Farsante */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">
-              Sospechoso Habitual
+              {t('score.usual_suspect')}
             </span>
             <span className="text-sm font-bold text-on-surface truncate">
               {suspicious?.names || '---'}
             </span>
             <span className="text-[10px] text-outline">
-              {suspicious ? `${suspicious.value} veces` : 'Sin datos'}
+              {suspicious
+                ? t('score.times', { count: suspicious.value.toString() })
+                : t('score.no_data')}
             </span>
           </div>
           {/* Card 2: Maestro */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">
-              Maestro del Engaño
+              {t('score.master_deceit')}
             </span>
             <span className="text-sm font-bold text-on-surface truncate">
               {master?.names || '---'}
             </span>
             <span className="text-[10px] text-outline">
-              {master ? `${master.value} victorias` : 'Sin datos'}
+              {master
+                ? t('score.victories', { count: master.value.toString() })
+                : t('score.no_data')}
             </span>
           </div>
           {/* Card 3: Guilty Face */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">
-              Cara de Culpable
+              {t('score.guilty_face')}
             </span>
             <span className="text-sm font-bold text-on-surface truncate">
               {scapegoat?.names || '---'}
             </span>
             <span className="text-[10px] text-outline">
-              {scapegoat ? `${scapegoat.value} errores` : 'Sin datos'}
+              {scapegoat
+                ? t('score.errors', { count: scapegoat.value.toString() })
+                : t('score.no_data')}
             </span>
           </div>
           {/* Card 4: Immortal */}
           <div className="bg-surface-container p-4 rounded-lg border border-outline-variant flex flex-col gap-1">
             <span className="text-[10px] font-black text-primary-container uppercase tracking-widest">
-              El Inmortal
+              {t('score.immortal')}
             </span>
             <span className="text-sm font-bold text-on-surface truncate">
               {immortal?.names || '---'}
             </span>
             <span className="text-[10px] text-outline">
-              {immortal ? `${immortal.value} rondas` : 'Sin datos'}
+              {immortal
+                ? t('score.rounds', { count: immortal.value.toString() })
+                : t('score.no_data')}
             </span>
           </div>
         </div>
@@ -209,11 +219,11 @@ export function ScoreScreen() {
       <div className="fixed bottom-0 left-0 w-full z-50 flex justify-center p-container-padding bg-gradient-to-t from-background via-background to-transparent pt-12 pointer-events-none">
         <div className="w-full max-w-md pointer-events-auto flex flex-col gap-3">
           <NeonButton fullWidth onClick={handleNextRound}>
-            {isTournamentOver ? 'FINALIZAR PARTIDA' : 'SIGUIENTE RONDA'}
+            {isTournamentOver ? t('score.finish_game') : t('score.next_round')}
           </NeonButton>
           {!isTournamentOver && state.config.scoreLimit !== null && (
             <NeonButton variant="ghost" fullWidth onClick={() => setShowAbortModal(true)}>
-              ABORTAR TORNEO
+              {t('score.abort_tournament')}
             </NeonButton>
           )}
           {!isTournamentOver && state.config.scoreLimit === null && (
@@ -221,7 +231,7 @@ export function ScoreScreen() {
               onClick={() => setShowResetModal(true)}
               className="text-outline-variant hover:text-error text-sm font-medium transition-colors py-2 uppercase tracking-tighter opacity-70 hover:opacity-100"
             >
-              Reiniciar Marcadores
+              {t('score.reset_scores_button')}
             </button>
           )}
         </div>
@@ -229,13 +239,15 @@ export function ScoreScreen() {
         <NeonModal
           isOpen={showResetModal}
           onClose={() => setShowResetModal(false)}
-          title="¿REINICIAR?"
+          title={t('score.reset_modal_title')}
         >
           <div className="flex flex-col gap-6">
             <p className="text-on-surface-variant">
-              ¿Estás seguro de que quieres{' '}
-              <span className="text-primary-container font-bold">REINICIAR</span> todas las
-              puntuaciones a cero?
+              {t('score.reset_modal_p1')}
+              <span className="text-primary-container font-bold">
+                {t('score.reset_modal_p2_bold')}
+              </span>
+              {t('score.reset_modal_p3')}
             </p>
             <div className="flex flex-col gap-3">
               <NeonButton
@@ -246,10 +258,10 @@ export function ScoreScreen() {
                   setShowResetModal(false)
                 }}
               >
-                SÍ, REINICIAR
+                {t('score.yes_reset')}
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={() => setShowResetModal(false)}>
-                CANCELAR
+                {t('score.cancel')}
               </NeonButton>
             </div>
           </div>
@@ -258,18 +270,16 @@ export function ScoreScreen() {
         <NeonModal
           isOpen={showAbortModal}
           onClose={() => setShowAbortModal(false)}
-          title="¿ABORTAR TORNEO?"
+          title={t('score.abort_modal_title')}
         >
           <div className="flex flex-col gap-6">
-            <p className="text-on-surface-variant">
-              ¿Estás seguro de que quieres cancelar el torneo y volver a la configuración inicial?
-            </p>
+            <p className="text-on-surface-variant">{t('score.abort_modal_desc')}</p>
             <div className="flex flex-col gap-3">
               <NeonButton variant="danger" fullWidth onClick={handleAbortTournament}>
-                SÍ, ABORTAR
+                {t('score.yes_abort')}
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={() => setShowAbortModal(false)}>
-                CANCELAR
+                {t('score.cancel')}
               </NeonButton>
             </div>
           </div>
@@ -278,7 +288,7 @@ export function ScoreScreen() {
         <NeonModal
           isOpen={showVictoryModal}
           onClose={() => setShowVictoryModal(false)}
-          title="¡FIN DEL TORNEO!"
+          title={t('score.end_tournament_title')}
         >
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-2">
@@ -286,7 +296,7 @@ export function ScoreScreen() {
                 military_tech
               </span>
               <p className="text-on-surface-variant text-center">
-                El torneo ha terminado. ¿Qué quieres hacer con los marcadores?
+                {t('score.end_tournament_desc')}
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -298,10 +308,10 @@ export function ScoreScreen() {
                   setShowVictoryModal(false)
                 }}
               >
-                REINICIAR A CERO Y VOLVER
+                {t('score.reset_to_zero')}
               </NeonButton>
               <NeonButton variant="ghost" fullWidth onClick={handleKeepScoresAndFreeMode}>
-                CONSERVAR PUNTOS Y MODO LIBRE
+                {t('score.keep_points_free_mode')}
               </NeonButton>
             </div>
           </div>

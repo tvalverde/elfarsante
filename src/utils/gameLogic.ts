@@ -1,5 +1,5 @@
 import type { Player, GameConfig, RoundData } from '../context/GameStateContext'
-import { AVAILABLE_CATEGORIES, WORD_LISTS } from '../data/dictionary'
+import { AVAILABLE_CATEGORIES } from '../data/dictionary'
 
 interface GenerateRoundParams {
   currentPlayers: Player[]
@@ -15,14 +15,14 @@ interface GenerateRoundResult {
   exhaustedCategory?: string // Returns category name if we had to reset its history
 }
 
-export function generateNewRound({
+export async function generateNewRound({
   currentPlayers,
   validPlayerNames,
   config,
   usedWords,
   forceResetScores = false,
-}: GenerateRoundParams): GenerateRoundResult {
-  const { farsantesCount, selectedCategories, timerDuration } = config
+}: GenerateRoundParams): Promise<GenerateRoundResult> {
+  const { farsantesCount, selectedCategories, timerDuration, language = 'es' } = config
 
   // Use validPlayerNames if provided (e.g. from HomeScreen), otherwise use current active players
   const playerNames =
@@ -82,7 +82,17 @@ export function generateNewRound({
     chosenCat = selectedCategories[Math.floor(Math.random() * selectedCategories.length)]
   }
 
-  const fullWordList = WORD_LISTS[chosenCat] || []
+  let wordLists: Record<string, string[]>
+  try {
+    const dictModule = await import(`../data/dictionaries/${language}.json`)
+    wordLists = dictModule.default || dictModule
+  } catch (err) {
+    console.error('Failed to load dictionary for', language, err)
+    const fallbackModule = await import(`../data/dictionaries/es.json`)
+    wordLists = fallbackModule.default || fallbackModule
+  }
+
+  const fullWordList = wordLists[chosenCat] || []
   const categoryUsedWords = usedWords[chosenCat] || []
   let filteredWords = fullWordList.filter((w) => !categoryUsedWords.includes(w))
 
