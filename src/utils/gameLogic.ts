@@ -23,9 +23,10 @@ export function generateNewRound({
   forceResetScores = false,
 }: GenerateRoundParams): GenerateRoundResult {
   const { farsantesCount, selectedCategories, timerDuration } = config
-  
+
   // Use validPlayerNames if provided (e.g. from HomeScreen), otherwise use current active players
-  const playerNames = validPlayerNames.length > 0 ? validPlayerNames : currentPlayers.map(p => p.name)
+  const playerNames =
+    validPlayerNames.length > 0 ? validPlayerNames : currentPlayers.map((p) => p.name)
 
   const farsanteIndices: number[] = []
   const allIndices = playerNames.map((_, i) => i)
@@ -84,7 +85,7 @@ export function generateNewRound({
   const fullWordList = WORD_LISTS[chosenCat] || []
   const categoryUsedWords = usedWords[chosenCat] || []
   let filteredWords = fullWordList.filter((w) => !categoryUsedWords.includes(w))
-  
+
   let exhaustedCategory: string | undefined
 
   if (filteredWords.length === 0 && fullWordList.length > 0) {

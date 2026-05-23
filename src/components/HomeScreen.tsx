@@ -30,13 +30,18 @@ export function HomeScreen() {
   const lastUidRef = useRef(activeUid)
 
   const [players, setPlayers] = useState<{ id: string; name: string }[]>(() => {
-    const createPlayer = (name: string) => ({ id: Math.random().toString(36).substring(2, 9), name })
+    const createPlayer = (name: string) => ({
+      id: Math.random().toString(36).substring(2, 9),
+      name,
+    })
     const saved = localStorage.getItem('elfarsante_draft_players')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((p) => (typeof p === 'string' ? createPlayer(p) : { ...p, id: p.id || createPlayer(p.name).id }))
+          return parsed.map((p) =>
+            typeof p === 'string' ? createPlayer(p) : { ...p, id: p.id || createPlayer(p.name).id },
+          )
         }
       } catch {
         // Silent fail for invalid JSON
@@ -90,7 +95,7 @@ export function HomeScreen() {
   }, [selectedCategories, timerDuration, farsantesCount, penaltyOnFail, scoreLimit, blindTimer])
 
   useEffect(() => {
-    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players.map(p => p.name)))
+    localStorage.setItem('elfarsante_draft_players', JSON.stringify(players.map((p) => p.name)))
   }, [players])
 
   // Detect when the state has been updated from the cloud (typically after a link/unlink or external change)
@@ -106,7 +111,12 @@ export function HomeScreen() {
       // Only override if the new state has actual player data to avoid wiping current draft with a fresh state
       if (state.players && state.players.length > 0) {
         /* eslint-disable react-hooks/set-state-in-effect */
-        setPlayers(state.players.map((p) => ({ id: Math.random().toString(36).substring(2, 9), name: p.name })))
+        setPlayers(
+          state.players.map((p) => ({
+            id: Math.random().toString(36).substring(2, 9),
+            name: p.name,
+          })),
+        )
         setSelectedCategories(state.config.selectedCategories)
         setTimerDuration(state.config.timerDuration)
         setFarsantesCount(state.config.farsantesCount)

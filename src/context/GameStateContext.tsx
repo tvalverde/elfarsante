@@ -7,7 +7,15 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react'
-import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  onSnapshot,
+  setDoc,
+  serverTimestamp,
+  collection,
+  arrayUnion,
+  deleteField,
+} from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
 
@@ -106,12 +114,33 @@ type Action =
   | { type: 'HARD_RESET' }
   | { type: 'LOAD_STATE'; payload: GameState }
   | { type: 'CLEAR_CATEGORY_WORDS'; payload: string }
+  | { type: 'MERGE_USED_WORDS'; payload: Record<string, string[]> }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function gameReducer(state: GameState, action: Action): GameState {
   // If loading from cloud, we accept it as is without updating the timestamp
   if (action.type === 'LOAD_STATE') {
-    return action.payload
+    return {
+      ...action.payload,
+      // Retain local usedWords as it's now synced via a separate subcollection
+      usedWords: { ...state.usedWords },
+    }
+  }
+
+  if (action.type === 'MERGE_USED_WORDS') {
+    const newUsedWords = { ...state.usedWords }
+    let changed = false
+    for (const [cat, words] of Object.entries(action.payload)) {
+      const existing = new Set(newUsedWords[cat] || [])
+      const beforeSize = existing.size
+      words.forEach((w) => existing.add(w))
+      if (existing.size !== beforeSize) {
+        newUsedWords[cat] = Array.from(existing)
+        changed = true
+      }
+    }
+    if (!changed) return state
+    return { ...state, usedWords: newUsedWords } // Don't bump local mutation count for cloud updates
   }
 
   let newState: GameState
@@ -292,10 +321,10 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced')
   const lastActiveUidRef = useRef<string | null>(activeUid)
 
-  // A unique ID for this app session to identify our own writes (echos)
   const [sessionId] = useState(() => Math.random().toString(36).substring(2, 10))
   const lastPushedMutationCountRef = useRef<number>(state.localMutationCount)
   const stateRef = useRef<GameState>(state)
+  const prevUsedWordsRef = useRef<Record<string, string[]>>(state.usedWords)
 
   // Keep stateRef up to date for listeners
   useEffect(() => {
@@ -330,6 +359,26 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         // 2. External Truth: If it's from another device or manual edit, accept it.
         // We accept inconditionally because Firestore guarantees delivery order.
         if (currentState.currentPhase !== 'RESTORE_PROMPT') {
+          // Legacy usedWords cleanup/migration
+          const cloudData = cloudState as Record<string, unknown>
+          if (cloudData.usedWords) {
+            const legacyUsedWords = cloudData.usedWords as Record<string, string[]>
+            delete cloudData.usedWords
+
+            // Delete from main document
+            setDoc(docRef, { usedWords: deleteField() }, { merge: true }).catch(console.error)
+
+            // Migrate to subcollection
+            Object.entries(legacyUsedWords).forEach(([cat, words]) => {
+              if (Array.isArray(words) && words.length > 0) {
+                const catRef = doc(db, 'users', activeUid, 'usedWords', cat)
+                setDoc(catRef, { words: arrayUnion(...words) }, { merge: true }).catch(
+                  console.error,
+                )
+              }
+            })
+          }
+
           // Update tracker so we don't echo this back
           lastPushedMutationCountRef.current = cloudState.localMutationCount
           dispatch({ type: 'LOAD_STATE', payload: cloudState })
@@ -340,6 +389,30 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
     return unsubscribe
   }, [activeUid, sessionId])
+
+  // Cloud Listener for usedWords Subcollection
+  useEffect(() => {
+    if (!activeUid) return
+
+    const usedWordsRef = collection(db, 'users', activeUid, 'usedWords')
+    const unsubscribe = onSnapshot(usedWordsRef, (snap) => {
+      // Avoid reacting immediately to our own local updates that we just sent
+      if (snap.metadata.hasPendingWrites) return
+
+      const wordsToMerge: Record<string, string[]> = {}
+      snap.docs.forEach((d) => {
+        const data = d.data()
+        if (data && Array.isArray(data.words)) {
+          wordsToMerge[d.id] = data.words
+        }
+      })
+      if (Object.keys(wordsToMerge).length > 0) {
+        dispatch({ type: 'MERGE_USED_WORDS', payload: wordsToMerge })
+      }
+    })
+
+    return unsubscribe
+  }, [activeUid])
 
   // Network listener to handle offline status
   useEffect(() => {
@@ -369,6 +442,19 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
           return
         }
 
+        // Diff and sync usedWords to subcollection
+        const currentUsed = state.usedWords
+        const prevUsed = prevUsedWordsRef.current
+        Object.entries(currentUsed).forEach(([cat, words]) => {
+          const prevWords = prevUsed[cat] || []
+          const newWords = words.filter((w) => !prevWords.includes(w))
+          if (newWords.length > 0) {
+            const catRef = doc(db, 'users', activeUid, 'usedWords', cat)
+            setDoc(catRef, { words: arrayUnion(...newWords) }, { merge: true }).catch(console.error)
+          }
+        })
+        prevUsedWordsRef.current = currentUsed
+
         // Only push if we have new local mutations not yet sent to the server.
         if (state.localMutationCount > lastPushedMutationCountRef.current) {
           lastPushedMutationCountRef.current = state.localMutationCount
@@ -378,9 +464,11 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
           const docRef = doc(db, 'users', activeUid)
 
-          // Inject authorship and server time during transport
+          // Inject authorship and server time during transport, and remove usedWords
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { usedWords: _usedWords, ...stateWithoutUsedWords } = state
           const payload = {
-            ...state,
+            ...stateWithoutUsedWords,
             lastMutatedBy: sessionId,
             updatedAt: serverTimestamp(),
           }
@@ -396,7 +484,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [state, activeUid])
+  }, [state, activeUid, sessionId])
 
   return (
     <GameStateContext.Provider value={{ state, dispatch, syncStatus }}>
